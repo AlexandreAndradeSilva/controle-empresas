@@ -2,6 +2,15 @@
 
 Sistema web (frontend + Supabase como backend) para controle de empresas contábeis: cadastro, apuração mensal, impostos, declarações, senhas de acesso, histórico e backup.
 
+## Status atual
+
+- [ ] Projeto criado no Supabase
+- [ ] `supabase/migration.sql` executado no SQL Editor do projeto
+- [ ] Usuário de login criado em Authentication → Users
+- [ ] `window.SUPABASE_CONFIG` no final do `index.html` preenchido com a URL e a anon key reais
+
+**Enquanto esses itens não estiverem marcados, o app não funciona** — `index.html` ainda está com os valores de exemplo `SEU-PROJETO.supabase.co` / `SUA_ANON_KEY_PUBLICA` (é só abrir o arquivo e procurar por `SUPABASE_CONFIG` pra confirmar). Siga "Configurar o backend" e "Configurar o frontend" abaixo nessa ordem; depois de configurar, marque os itens acima (e faça commit) para quem futuramente clonar o repositório já saber que essa parte está pronta.
+
 ## Estrutura
 
 ```
