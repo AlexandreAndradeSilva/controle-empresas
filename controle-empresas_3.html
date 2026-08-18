@@ -1,0 +1,2724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Empresas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --navy-950:#0a1a33; --navy-900:#0f2547; --navy-800:#173461; --navy-700:#1f4278; --navy-600:#2b5494;
+    --amber:#f4b942; --amber-dark:#c98a1d; --red:#e0526b; --red-bg:#3a1522; --green:#2fae64;
+    --bg:#eef1f7; --card:#ffffff; --ink:#0f1a2b; --muted:#5b6b84; --line:#e2e7f0;
+    --warn-bg:#fff6de; --warn-border:#f1dd9c; --warn-ink:#7a5a05;
+    --radius:16px; --shadow:0 1px 2px rgba(15,26,43,.06), 0 8px 24px -12px rgba(15,26,43,.18);
+  }
+  *{box-sizing:border-box}
+  .icon-svg{display:inline-block;width:1em;height:1em;flex-shrink:0}
+  body.dark{ --bg:#12151c; --card:#1b1f29; --ink:#e7e9ee; --muted:#98a0ac; --line:#2b303c; --warn-bg:#2a2506; --warn-border:#4a3f0c; --warn-ink:#f0d876; }
+  body{margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:60px;}
+  h1,h2,h3{font-family:'Plus Jakarta Sans',system-ui,sans-serif}
+  .wrap{width:100%;margin:0 auto;padding:14px 24px}
+  @media(min-width:1000px){ .wrap{padding:20px 32px} }
+  @media print{
+    body *{ visibility:hidden; }
+    #modalPerfil, #modalPerfil *{ visibility:visible; }
+    #modalPerfil{ position:absolute; top:0; left:0; width:100%; background:none !important; }
+    #btnPrintPerfil, .close-x, #btnVoltarPerfil, #btnEditEmpresa, #btnIniciarDocs, #btnSalvarDocs, #btnPadraoApuracao, #btnPadraoImpostos, .copy-field span:last-child{ display:none !important; }
+  }
+  .header{background:linear-gradient(155deg,var(--navy-900),var(--navy-950));border-radius:var(--radius);padding:20px 22px;color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .header::after{content:"";position:absolute;right:-40px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(244,185,66,.16),transparent 70%);}
+  .header h1{margin:0 0 6px;font-size:1.28rem;font-weight:800}
+  .header p{margin:0;color:#b8c6e0;font-size:.85rem;line-height:1.45;max-width:600px}
+  .header-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .btn{border:none;border-radius:10px;padding:9px 14px;font-size:.82rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:filter .15s ease, transform .1s ease;}
+  .btn:active{transform:scale(.97)}
+  .btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18)}
+  .btn-ghost:hover{background:rgba(255,255,255,.18)}
+  .btn-icon{width:36px;height:36px;padding:0;justify-content:center;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:10px}
+  .btn-primary{background:var(--amber);color:#3a2a02}
+  .btn-outline{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  .btn-danger{background:transparent;color:var(--red);border:1px solid rgba(224,82,107,.4)}
+  .btn-sm{padding:6px 10px;font-size:.76rem;border-radius:8px}
+  .banner{margin-top:12px;background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-ink);border-radius:12px;padding:12px 14px;font-size:.82rem;line-height:1.5;display:flex;gap:10px;align-items:flex-start;}
+  .cards3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
+  .action-card{background:linear-gradient(160deg,var(--navy-800),var(--navy-700));color:#fff;border-radius:14px;padding:16px;cursor:pointer;border:none;text-align:left;font-family:inherit;box-shadow:var(--shadow);transition:transform .15s ease, filter .15s ease;}
+  .action-card:hover{transform:translateY(-2px);filter:brightness(1.05)}
+  .action-card .icon{font-size:1.3rem;margin-bottom:8px;display:block}
+  .action-card h3{margin:0 0 4px;font-size:.96rem;font-weight:700}
+  .action-card p{margin:0;font-size:.78rem;color:#c3d0e6;line-height:1.4}
+  .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:14px}
+  .chip{border-radius:12px;padding:11px 6px;text-align:center;cursor:pointer;border:2px solid transparent;font-family:inherit;background:var(--card);box-shadow:var(--shadow)}
+  .chip.active{border-color:var(--amber)}
+  .chip .num{font-size:1.15rem;font-weight:800;display:block}
+  .chip .lbl{font-size:.66rem;color:var(--muted);font-weight:700;letter-spacing:.3px}
+  .chip.total .num{color:var(--navy-700)}
+  .chip.pendente .num{color:var(--red)}
+  .chip.andamento .num{color:var(--amber-dark)}
+  .chip.concluida .num{color:var(--green)}
+  .chip.finalizadas .num{color:var(--navy-600)}
+  .panel{background:var(--card);border-radius:14px;margin-top:14px;padding:18px;box-shadow:var(--shadow);border:1px solid var(--line);}
+  .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+  .panel-head h2{margin:0;font-size:1rem;display:flex;align-items:center;gap:8px}
+  .badge{background:var(--amber);color:#3a2a02;border-radius:999px;padding:1px 9px;font-size:.72rem;font-weight:800}
+  .panel-head .sub{color:var(--muted);font-size:.8rem;margin:2px 0 0}
+  .search{margin-top:14px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;}
+  .search input{border:none;background:transparent;outline:none;font-size:.88rem;color:var(--ink);width:100%;font-family:inherit;}
+  .empty{padding:36px 10px;text-align:center;color:var(--muted);font-size:.88rem}
+  .client-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer;}
+  @media(min-width:900px){
+    #clientList, #apurList{display:grid;grid-template-columns:1fr 1fr;column-gap:20px;}
+    #clientList .client-row, #apurList .client-row{border-bottom:1px solid var(--line);}
+  }
+  .client-row:last-child{border-bottom:none}
+  .client-row:hover{background:var(--bg)}
+  .client-main{display:flex;gap:10px;align-items:center;min-width:0}
+  .avatar{width:38px;height:38px;border-radius:10px;background:var(--navy-700);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;flex:none;}
+  .client-name{font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .client-meta{font-size:.74rem;color:var(--muted)}
+  .status-pill{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .status-ok{background:#e4f7ea;color:#1b7a41}
+  .status-late{background:#fde3e8;color:#c22e4c}
+  .status-mid{background:#dbeafe;color:#1d4ed8}
+  .status-neutral{background:#eef0f3;color:#5b6b84}
+  body.dark .status-ok{background:#0d2c1a;color:#5fd692}
+  body.dark .status-late{background:#3a1522;color:#ff8fa3}
+  body.dark .status-mid{background:#0f2a52;color:#7fb0ff}
+  body.dark .status-neutral{background:#1c2230;color:#93a2bd}
+  select.sel-ok{background:#e4f7ea!important;border-color:#8fd6ab!important;color:#1b7a41!important;font-weight:700}
+  select.sel-late{background:#fde3e8!important;border-color:#f2a8b8!important;color:#c22e4c!important;font-weight:700}
+  select.sel-neutral{background:#eef0f3!important;border-color:#d8dbe2!important;color:#5b6b84!important;font-weight:700}
+  select.sel-mid{background:#dbeafe!important;border-color:#93c5fd!important;color:#1d4ed8!important;font-weight:700}
+  body.dark select.sel-ok{background:#0d2c1a!important;border-color:#1f5030!important;color:#5fd692!important}
+  body.dark select.sel-late{background:#3a1522!important;border-color:#5c2233!important;color:#ff8fa3!important}
+  body.dark select.sel-neutral{background:#1c2230!important;border-color:#2c3444!important;color:#93a2bd!important}
+  body.dark select.sel-mid{background:#0f2a52!important;border-color:#1c4a86!important;color:#7fb0ff!important}
+  .footer-note{text-align:center;color:var(--muted);font-size:.72rem;margin-top:18px}
+  .overlay{position:fixed;inset:0;background:rgba(6,12,24,.55);display:none;align-items:flex-end;justify-content:center;z-index:50;}
+  .overlay.show{display:flex}
+  .modal{background:var(--card);width:100%;max-width:600px;border-radius:18px 18px 0 0;max-height:90vh;overflow-y:auto;padding:20px;animation:slideup .12s ease;}
+  @media(min-width:640px){ .overlay{align-items:center} .modal{border-radius:18px;margin-bottom:20px} }
+  @keyframes slideup{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal-fullscreen{max-width:100%!important;width:100%!important;height:100%!important;max-height:100%!important;border-radius:0!important;margin:0!important;}
+  #modalApuracao.overlay, #modalPerfil.overlay, #modalEmpresa.overlay, #modalVenc.overlay, #modalPadrao.overlay, #modalBaixadas.overlay, #modalHistoricoDetalhe.overlay, #modalBackup.overlay, #modalGerenciarImpostos.overlay, #modalMesesAnteriores.overlay, #modalVerGuia.overlay{align-items:stretch;justify-content:stretch;padding:0;}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .modal-head h2{margin:0;font-size:1.02rem}
+  .close-x{background:none;border:none;font-size:1.3rem;color:var(--muted);cursor:pointer;line-height:1;padding:4px}
+  .section-title{font-size:.72rem;font-weight:800;letter-spacing:.5px;color:var(--navy-600);text-transform:uppercase;margin:16px 0 8px}
+  body.dark .section-title{color:#7fa8e8}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:5px}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 11px;font-size:.9rem;font-family:inherit;background:var(--bg);color:var(--ink);outline:none;}
+  .field input:focus,.field select:focus{border-color:var(--navy-600)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  @media(max-width:480px){ .row3{grid-template-columns:1fr 1fr} }
+  .row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+  .checkbox-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .checkbox-row input{width:18px;height:18px;accent-color:var(--navy-700)}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--navy-950);color:#fff;padding:11px 18px;border-radius:10px;font-size:.84rem;box-shadow:var(--shadow);z-index:80;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+  .small-muted{font-size:.75rem;color:var(--muted)}
+  .divider{height:1px;background:var(--line);margin:14px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>Controle de Empresas</h1>
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="btnSync"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg> <span id="syncLabel">Pasta de dados</span> <span id="syncDot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#e0526b;margin-left:4px"></span></button>
+      <button class="btn btn-ghost" id="btnBaixadas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg> Empresas Baixadas <span class="badge" id="baixadasCount" style="margin-left:4px">0</span></button>
+      <button class="btn btn-ghost" id="btnGerenciarImpostos"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg> Gerenciar Impostos</button>
+      <button class="btn-icon" id="btnDark" title="Alternar tema"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+      <button class="btn-icon" id="btnBackup" title="Backup / Restaurar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
+  </div>
+
+  <div class="banner" id="bannerPastasSalvas" style="display:none;background:#e7f0ff;border-color:#c3d8fb;color:#1c3f7a;align-items:center">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+    <span id="bannerPastasSalvasText" style="flex:1"></span>
+    <button class="btn btn-primary btn-sm" id="btnReconectarPastaBanner">Reconectar</button>
+    <button class="btn btn-outline btn-sm" id="btnDispensarBannerPastas" style="margin-left:8px">Agora não</button>
+  </div>
+
+  <div class="cards3">
+    <button class="action-card" id="openEmpresa">
+      <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18"/><path d="M2 22h20"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/></svg></span>
+      <h3>Cadastrar Empresa</h3>
+      <p>Adicionar uma nova empresa ao controle</p>
+    </button>
+    <button class="action-card" id="btnApuracao">
+      <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></span>
+      <h3>Apuração do Mês</h3>
+      <p>Em breve</p>
+    </button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Empresas cadastradas <span class="badge" id="clientCount">0</span></h2>
+        <p class="sub">Pesquise ou clique em uma empresa para abrir o perfil completo.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="homeRegimeFilter" style="border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Regime: todos</option>
+          <option value="SIMPLES NACIONAL">Simples Nacional</option>
+          <option value="LUCRO PRESUMIDO">Lucro Presumido</option>
+          <option value="LUCRO REAL">Lucro Real</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:var(--ink);cursor:pointer;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 12px">
+          <input type="checkbox" id="filtroCertVencendo" style="width:16px;height:16px;accent-color:var(--red)">
+          Certificados vencendo este mês
+        </label>
+      </div>
+    </div>
+    <div class="search">
+      <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+      <input id="searchInput" placeholder="Pesquisar por razão social, CNPJ, responsável ou município...">
+    </div>
+    <div id="clientList"></div>
+  </div>
+
+  <p class="footer-note">Controle de Empresas</p>
+</div>
+
+<!-- MODAL: Empresa (novo/editar) -->
+<div class="overlay" id="modalEmpresa">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1100px,92vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2 id="empresaModalTitle">Nova empresa</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <input type="hidden" id="empId">
+
+    <div class="section-title">Identificação</div>
+    <div class="field">
+      <label>CNPJ / CPF</label>
+      <input id="fCnpj" placeholder="Digite o CNPJ para preencher automático, ou CPF" maxlength="18">
+      <p class="small-muted" id="cnpjLookupStatus" style="margin-top:5px;min-height:16px"></p>
+    </div>
+    <div class="field"><label>Razão social *</label><input id="fRazao" placeholder="Ex.: EMPRESA MODELO LTDA"></div>
+    <div class="row2">
+      <div class="field"><label>Nº</label><input id="fNumero" placeholder="Código interno"></div>
+      <div class="field"><label>IE</label><input id="fIe" placeholder="Ou 'isenta'"></div>
+    </div>
+    <div class="field"><label>Atividade</label>
+      <select id="fAtividade">
+        <option value="">Selecione...</option>
+        <option value="SERVIÇOS">Serviços</option>
+        <option value="SERVIÇOS/COMÉRCIO">Serviços / Comércio</option>
+        <option value="COMÉRCIO">Comércio</option>
+        <option value="COMÉRCIO/INDUSTRIA">Comércio / Indústria</option>
+        <option value="INDUSTRIA">Indústria</option>
+        <option value="INDUSTRIA/SERVIÇOS">Indústria / Serviços</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Município</label><input id="fMunicipio"></div>
+      <div class="field"><label>UF</label>
+        <select id="fUf">
+          <option value="">Selecione...</option>
+          <option value="AC">AC — Acre</option>
+          <option value="AL">AL — Alagoas</option>
+          <option value="AP">AP — Amapá</option>
+          <option value="AM">AM — Amazonas</option>
+          <option value="BA">BA — Bahia</option>
+          <option value="CE">CE — Ceará</option>
+          <option value="DF">DF — Distrito Federal</option>
+          <option value="ES">ES — Espírito Santo</option>
+          <option value="GO">GO — Goiás</option>
+          <option value="MA">MA — Maranhão</option>
+          <option value="MT">MT — Mato Grosso</option>
+          <option value="MS">MS — Mato Grosso do Sul</option>
+          <option value="MG">MG — Minas Gerais</option>
+          <option value="PA">PA — Pará</option>
+          <option value="PB">PB — Paraíba</option>
+          <option value="PR">PR — Paraná</option>
+          <option value="PE">PE — Pernambuco</option>
+          <option value="PI">PI — Piauí</option>
+          <option value="RJ">RJ — Rio de Janeiro</option>
+          <option value="RN">RN — Rio Grande do Norte</option>
+          <option value="RS">RS — Rio Grande do Sul</option>
+          <option value="RO">RO — Rondônia</option>
+          <option value="RR">RR — Roraima</option>
+          <option value="SC">SC — Santa Catarina</option>
+          <option value="SP">SP — São Paulo</option>
+          <option value="SE">SE — Sergipe</option>
+          <option value="TO">TO — Tocantins</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Dificuldade</label>
+        <select id="fDificuldade">
+          <option value="FACIL">Fácil</option>
+          <option value="NORMAL">Normal</option>
+          <option value="DIFICIL">Difícil</option>
+          <option value="SEM MOVIMENTO">Sem movimento</option>
+        </select>
+      </div>
+      <div class="field"><label>Responsáveis</label><input id="fResponsaveis" placeholder="Nome / Nome"></div>
+    </div>
+    <div class="field"><label>Regime</label>
+      <select id="fRegime">
+        <option value="">Selecione...</option>
+        <option value="SIMPLES NACIONAL">Simples Nacional</option>
+        <option value="LUCRO PRESUMIDO">Lucro Presumido</option>
+        <option value="LUCRO REAL">Lucro Real</option>
+      </select>
+    </div>
+
+    <div class="section-title">Situação</div>
+    <div class="field"><label>Vencimento / Certificado</label><input id="fVencimento" type="date"></div>
+    <div class="checkbox-row"><input type="checkbox" id="fBaixada"><label for="fBaixada" style="margin:0">Empresa baixada</label></div>
+    <div class="field" id="motivoBaixaWrap" style="display:none">
+      <label>Motivo da baixa *</label>
+      <textarea id="fMotivoBaixa" rows="2" placeholder="Explique por que a empresa foi baixada"></textarea>
+    </div>
+
+    <div class="section-title">Responsável pela empresa</div>
+    <div class="row2">
+      <div class="field"><label>Nome</label><input id="fRespNome" placeholder="Nome do responsável"></div>
+      <div class="field"><label>Telefone</label><input id="fRespTelefone" placeholder="(00) 00000-0000"></div>
+    </div>
+    <div class="field"><label>E-mail</label><input id="fRespEmail" type="email" placeholder="email@empresa.com"></div>
+    <div class="field"><label>Outros</label><textarea id="fRespOutros" rows="2" placeholder="Outras informações de contato"></textarea></div>
+
+    <div class="section-title">Senhas</div>
+    <div class="small-muted" style="margin-bottom:6px;font-weight:700">Prefeitura</div>
+    <div class="field"><label>Link do site (opcional)</label><input id="fPrefLink" placeholder="https://..."></div>
+    <div class="row2">
+      <div class="field"><label>Login</label><input id="fPrefLogin" placeholder="Login"></div>
+      <div class="field"><label>Senha</label><input id="fPrefSenha" placeholder="Senha"></div>
+    </div>
+
+    <div class="small-muted" style="margin-bottom:6px;font-weight:700">Sistema 1</div>
+    <div class="field"><label>Nome do sistema</label><input id="fSis1Nome" placeholder="Ex.: SEBRAE"></div>
+    <div class="field"><label>Link do site (opcional)</label><input id="fSis1Link" placeholder="https://..."></div>
+    <div class="row2">
+      <div class="field"><label>Login</label><input id="fSis1Login" placeholder="Login"></div>
+      <div class="field"><label>Senha</label><input id="fSis1Senha" placeholder="Senha"></div>
+    </div>
+
+    <div class="small-muted" style="margin-bottom:6px;font-weight:700">Sistema 2</div>
+    <div class="field"><label>Nome do sistema</label><input id="fSis2Nome" placeholder="Ex.: Bling"></div>
+    <div class="field"><label>Link do site (opcional)</label><input id="fSis2Link" placeholder="https://..."></div>
+    <div class="row2">
+      <div class="field"><label>Login</label><input id="fSis2Login" placeholder="Login"></div>
+      <div class="field"><label>Senha</label><input id="fSis2Senha" placeholder="Senha"></div>
+    </div>
+
+    <div class="modal-actions" style="justify-content:space-between">
+      <button class="btn btn-danger btn-sm" id="btnDeleteEmpresaForm" style="display:none">Excluir empresa</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" data-close>Cancelar</button>
+        <button class="btn btn-primary" id="saveEmpresa">Salvar empresa</button>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Perfil -->
+<div class="overlay" id="modalPerfil">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1500px,95vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" id="btnVoltarPerfil" style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2 id="perfilNome">Empresa</h2><div style="display:flex;align-items:center;gap:4px"><button class="close-x" id="btnPrintPerfil" title="Imprimir"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div></div>
+    <p class="small-muted" id="perfilMeta"></p>
+    <div class="divider"></div>
+    <div id="perfilBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Apuração do Mês -->
+<div class="overlay" id="modalApuracao">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1600px,96vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head">
+      <h2>Apuração do Mês</h2>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-outline btn-sm" id="btnHistoricoMeses"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Meses anteriores</button>
+        <button class="btn btn-outline btn-sm" id="btnEncerrarMes"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg> Encerrar mês</button>
+        <button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+      </div>
+    </div>
+
+    <div class="chips" id="apurChips">
+      <button class="chip total active" data-afilter="todas"><span class="num" id="aTotal">0</span><span class="lbl">TOTAL</span></button>
+      <button class="chip pendente" data-afilter="PENDENTE"><span class="num" id="aPendente">0</span><span class="lbl">PENDENTE</span></button>
+      <button class="chip andamento" data-afilter="ANDAMENTO"><span class="num" id="aAndamento">0</span><span class="lbl">ANDAMENTO</span></button>
+      <button class="chip concluida" data-afilter="CONCLUIDA"><span class="num" id="aConcluida">0</span><span class="lbl">CONCLUÍDA</span></button>
+      <button class="chip finalizadas" data-afilter="finalizadas"><span class="num" id="aFinalizadas">0</span><span class="lbl">IMPOSTO/GUIAS</span></button>
+    </div>
+
+    <div class="search" style="margin-top:14px">
+      <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+      <input id="apurSearch" placeholder="Pesquisar por razão social, CNPJ, responsável ou município...">
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px">
+      <p class="small-muted" style="margin:0" id="apurCount"></p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select id="apurDificuldadeFilter" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Dificuldade: todas</option>
+          <option value="FACIL">Fácil</option>
+          <option value="NORMAL">Normal</option>
+          <option value="DIFICIL">Difícil</option>
+          <option value="SEM MOVIMENTO">Sem movimento</option>
+        </select>
+        <select id="apurRegimeFilter" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Regime: todos</option>
+          <option value="SIMPLES NACIONAL">Simples Nacional</option>
+          <option value="LUCRO PRESUMIDO">Lucro Presumido</option>
+          <option value="LUCRO REAL">Lucro Real</option>
+        </select>
+        <select id="apurDeclaracaoFilter" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Declaração: todas</option>
+          <option value="PENDENTE">Declaração: Pendente</option>
+          <option value="SOLICITADO">Declaração: Solicitado</option>
+          <option value="CLIENTE_ENVIOU">Declaração: Cliente enviou</option>
+          <option value="RELATORIO_PREFEITURA">Declaração: Relatório da Prefeitura</option>
+        </select>
+        <select id="apurImpostoTipoFilter" style="display:none;border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Tipo de imposto: todos</option>
+        </select>
+        <select id="apurOrdenarPor" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="manual" selected>Ordenar: Arrastar (manual)</option>
+          <option value="nome_az">Ordenar: Nome (A-Z)</option>
+          <option value="nome_za">Ordenar: Nome (Z-A)</option>
+          <option value="venc_prox">Ordenar: Vencimento (mais próximo)</option>
+          <option value="venc_dist">Ordenar: Vencimento (mais distante)</option>
+          <option value="progresso_menor">Ordenar: Progresso (menor primeiro)</option>
+          <option value="progresso_maior">Ordenar: Progresso (maior primeiro)</option>
+        </select>
+      </div>
+    </div>
+    <p class="small-muted" id="apurDragHint" style="margin-top:6px">Arraste as empresas pela lista abaixo para reordenar do seu jeito.</p>
+    <div id="apurList"></div>
+
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Vencimentos -->
+<div class="overlay" id="modalVenc">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:700px;margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Próximos vencimentos</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Ordenado por data de vencimento/certificado mais próxima.</p>
+    <div class="divider"></div>
+    <div id="vencList"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Padrão de Apuração -->
+<div class="overlay" id="modalPadrao">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:700px;margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2 id="padraoModalTitle">Padrão da Apuração</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Defina como cada campo já deve aparecer no início de todo mês para esta empresa. Deixe em "Usar padrão do sistema" para não fixar nada.</p>
+    <div class="divider"></div>
+    <div id="padraoFields"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Cancelar</button>
+      <button class="btn btn-primary" id="btnSalvarPadrao">Salvar padrão</button>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Gerenciar Impostos -->
+<div class="overlay" id="modalGerenciarImpostos">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:700px;margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Gerenciar Impostos</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">DIFAL, CRF, IRRF, REINF, ISSQN Prest. e ISSQN Toma. aparecem sempre, pra todas as empresas. Aqui você pode adicionar outros impostos que só aparecem para empresas de um regime específico (ou de todos).</p>
+    <div class="divider"></div>
+
+    <div class="section-title">Adicionar novo imposto</div>
+    <div class="field"><label>Nome do imposto</label><input id="novoImpostoNome" placeholder="Ex.: ICMS ST"></div>
+    <div style="margin-bottom:14px">
+      <div class="small-muted" style="font-weight:600;margin-bottom:8px">Aparece para o(s) regime(s)</div>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" value="SIMPLES NACIONAL" class="novoImpostoRegime" style="width:17px;height:17px;accent-color:var(--navy-700)"> Simples Nacional</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" value="LUCRO PRESUMIDO" class="novoImpostoRegime" style="width:17px;height:17px;accent-color:var(--navy-700)"> Lucro Presumido</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;padding:8px 0"><input type="checkbox" value="LUCRO REAL" class="novoImpostoRegime" style="width:17px;height:17px;accent-color:var(--navy-700)"> Lucro Real</label>
+    </div>
+    <button class="btn btn-primary btn-sm" id="btnAddImpostoCustom">+ Adicionar imposto</button>
+
+    <div class="divider"></div>
+    <div class="section-title">Impostos adicionados</div>
+    <div id="impostosCustomList"></div>
+
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Empresas Baixadas -->
+<div class="overlay" id="modalBaixadas">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1500px,95vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Empresas Baixadas</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Empresas arquivadas — não entram mais na apuração, mas todo o histórico e os dados continuam guardados aqui.</p>
+    <div class="search" style="margin-top:12px">
+      <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+      <input id="baixadasSearch" placeholder="Pesquisar por razão social, CNPJ ou município...">
+    </div>
+    <div class="divider"></div>
+    <div id="baixadasList"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Meses Anteriores (consulta consolidada) -->
+<div class="overlay" id="modalMesesAnteriores">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1500px,95vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Meses anteriores</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Consulte rapidamente como ficou a apuração de qualquer empresa em meses já encerrados.</p>
+    <div class="divider"></div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <select id="mesAnteriorSelect" style="border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:.88rem;font-family:inherit;background:var(--bg);color:var(--ink);min-width:220px"></select>
+      <div class="search" style="flex:1;min-width:220px;margin-top:0">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="mesAnteriorSearch" placeholder="Pesquisar por razão social...">
+      </div>
+    </div>
+    <p class="small-muted" style="margin-top:10px" id="mesAnteriorCount"></p>
+    <div id="mesAnteriorList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Ver Guia (PDF embutido) -->
+<div class="overlay" id="modalVerGuia">
+  <div class="modal modal-fullscreen" style="overflow-y:hidden;padding:0;display:flex;flex-direction:column">
+    <div class="modal-head" style="padding:14px 20px;margin:0;flex:none">
+      <h2 id="verGuiaTitulo" style="font-size:.95rem">Guia</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-outline btn-sm" id="btnBaixarGuiaAberta"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> Baixar</button>
+        <button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+      </div>
+    </div>
+    <iframe id="verGuiaFrame" style="flex:1;border:none;width:100%;background:#525659"></iframe>
+  </div>
+</div>
+
+<!-- MODAL: Histórico de um mês -->
+<div class="overlay" id="modalHistoricoDetalhe">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:700px;margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2 id="histDetTitulo">Histórico</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted" id="histDetData"></p>
+    <div class="divider"></div>
+    <div id="histDetBody"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Backup -->
+<div class="overlay" id="modalBackup">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:700px;margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Backup e restauração</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+
+    <div class="small-muted" style="font-weight:700;color:var(--navy-600);text-transform:uppercase;font-size:.72rem;letter-spacing:.4px">Pasta de dados</div>
+    <p class="small-muted">Este app roda dentro do Claude, que não permite conectar direto a uma pasta do sistema. Ao clicar em "Conectar pasta", o navegador baixa o backup — se seu navegador estiver configurado para perguntar onde salvar, você escolhe a pasta uma vez e ele lembra depois.</p>
+    <div style="display:flex;align-items:center;gap:8px;margin:8px 0 4px">
+      <span id="folderStatusDot" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:#e0526b"></span>
+      <span id="folderStatusText" style="font-size:.84rem;font-weight:600">Nenhuma pasta conectada</span>
+    </div>
+    <div class="modal-actions" style="justify-content:flex-start;margin-top:6px">
+      <button class="btn btn-outline btn-sm" id="btnConnectFolder"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg> Conectar pasta</button>
+      <button class="btn btn-outline btn-sm" id="btnSaveToFolder" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg> Salvar agora nesta pasta</button>
+      <button class="btn btn-outline btn-sm" id="btnDisconnectFolder" style="display:none">Desconectar</button>
+    </div>
+
+    <div class="divider"></div>
+    <div class="small-muted" style="font-weight:700;color:var(--navy-600);text-transform:uppercase;font-size:.72rem;letter-spacing:.4px">Pastas salvas (atalhos)</div>
+    <p class="small-muted">Guarde vários atalhos de pastas — por exemplo, um pra backup mensal e outro pra levar num pendrive — e reconecte com um clique, sem precisar navegar de novo. Funciona só fora do Claude, direto no navegador.</p>
+    <div id="pastasSalvasList" style="margin-top:8px"></div>
+    <button class="btn btn-outline btn-sm" id="btnSalvarPastaAtalho" style="margin-top:10px;display:none"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg> Salvar pasta atual como novo atalho</button>
+
+    <div class="divider"></div>
+    <div class="small-muted" style="font-weight:700;color:var(--navy-600);text-transform:uppercase;font-size:.72rem;letter-spacing:.4px">Backup manual</div>
+    <p class="small-muted">Ou exporte um arquivo avulso e escolha onde salvar toda vez.</p>
+    <div class="modal-actions" style="justify-content:flex-start;margin-top:10px">
+      <button class="btn btn-outline btn-sm" id="btnExportJson"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> Exportar backup (.json)</button>
+      <label class="btn btn-outline btn-sm" style="cursor:pointer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M5 3h14"/></svg> Importar backup<input type="file" id="importJson" accept="application/json" style="display:none"></label>
+    </div>
+    <div class="divider"></div>
+    <button class="btn btn-danger btn-sm" id="btnWipe">Apagar todos os dados</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="guiaFileInput" accept="application/pdf" style="display:none">
+
+<script>
+/* ---------------- seed data (importado do PDF) ---------------- */
+const SEED = [];
+
+/* ---------------- state & storage ---------------- */
+let DATA = { companies: [] };
+let SHARED = false;
+let currentProfileId = null;
+let perfilReturnTo = null;
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+function debounce(fn, ms){
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._h);
+  toast._h = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+async function loadData(){
+  try{
+    const res = await window.storage.get('empresas-data', SHARED);
+    if(res && res.value){ DATA = JSON.parse(res.value); }
+    else { DATA = { companies: JSON.parse(JSON.stringify(SEED)) }; await saveData(); }
+  }catch(e){
+    DATA = { companies: JSON.parse(JSON.stringify(SEED)) };
+    await saveData();
+  }
+  render();
+}
+async function saveData(){
+  let ok = false;
+  try{
+    await window.storage.set('empresas-data', JSON.stringify(DATA), SHARED);
+    ok = true;
+  }catch(e){
+    console.error('Falha ao salvar, tentando novamente...', e);
+    try{
+      await new Promise(r => setTimeout(r, 700));
+      await window.storage.set('empresas-data', JSON.stringify(DATA), SHARED);
+      ok = true;
+    }catch(e2){
+      console.error(e2);
+      toast('Não foi possível salvar os dados. Tente novamente em instantes.');
+      ok = false;
+    }
+  }
+  // sincroniza automaticamente com a pasta real conectada (fora do Claude),
+  // sem precisar clicar em "Salvar agora nesta pasta" toda vez
+  if(typeof folderConnected !== 'undefined' && folderConnected && typeof realDirHandle !== 'undefined' && realDirHandle){
+    try{
+      const salvouNaPasta = await writeBackupToRealFolder();
+      if(!salvouNaPasta) console.warn('Não foi possível sincronizar automaticamente com a pasta conectada.');
+    }catch(e){
+      console.error('Auto-sync na pasta falhou:', e);
+    }
+  }
+  return ok;
+}
+
+/* ---------------- helpers ---------------- */
+function uid(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fmtDate(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function initials(name){ return (name||'').trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join(''); }
+function statusLabel(s){ return {PENDENTE:'Pendente', ANDAMENTO:'Andamento', CONCLUIDA:'Concluída'}[s] || s; }
+
+/* Aceita CPF (11 dígitos numéricos), CNPJ numérico (14 dígitos) e CNPJ alfanumérico
+   (novo modelo da Receita Federal: 12 posições alfanuméricas + 2 dígitos verificadores numéricos) */
+function cleanDoc(v){
+  return (v||'').toUpperCase().replace(/[^0-9A-Z]/g,'').slice(0,14);
+}
+function maskDoc(raw){
+  const v = cleanDoc(raw);
+  if(v.length <= 11){
+    // CPF: 000.000.000-00
+    return v.replace(/^(\w{3})(\w{0,3})(\w{0,3})(\w{0,2})$/, (m,a,b,c,d) =>
+      [a, b&&'.'+b, c&&'.'+c, d&&'-'+d].filter(Boolean).join(''));
+  }
+  // CNPJ (numérico ou alfanumérico): XX.XXX.XXX/XXXX-DD
+  return v.replace(/^(\w{2})(\w{0,3})(\w{0,3})(\w{0,4})(\w{0,2})$/, (m,a,b,c,d,e) =>
+    [a, b&&'.'+b, c&&'.'+c, d&&'/'+d, e&&'-'+e].filter(Boolean).join(''));
+}
+function isValidDoc(v){
+  const c = cleanDoc(v);
+  return c.length === 0 || c.length === 11 || c.length === 14;
+}
+function statusClass(s){ return s==='PENDENTE' ? 'status-late' : (s==='ANDAMENTO' ? 'status-mid' : 'status-ok'); }
+function statusColorKind(v){
+  if(v === 'CONCLUIDO' || v === 'FEITO' || v === 'CLIENTE_ENVIOU' || v === 'RELATORIO_PREFEITURA' || v === 'MOVIMENTO ENCERRADO') return 'ok';
+  if(v === 'PENDENTE') return 'late';
+  if(!v) return '';
+  if(v.includes('NÃO TEM') || v==='NÃO PAGA' || v==='NÃO PRECISA') return 'neutral';
+  if(v==='SEM MOVIMENTO' || v==='LANÇAR' || v==='CALCULAR' || v==='SOLICITADO' || v==='FECHAR DCTF') return 'mid';
+  return '';
+}
+function docPillClass(v){
+  const kind = statusColorKind(v);
+  return kind ? 'status-'+kind : '';
+}
+function selectColorClass(v){
+  const kind = statusColorKind(v);
+  return kind ? 'sel-'+kind : '';
+}
+function colorizeSelect(sel){
+  sel.classList.remove('sel-ok','sel-late','sel-neutral','sel-mid');
+  const cls = selectColorClass(sel.value);
+  if(cls) sel.classList.add(cls);
+}
+function colorizeSelectsIn(container){
+  if(!container) return;
+  container.querySelectorAll('select[data-dockey], select[data-impkey], select[data-deckey], select[data-padraokey]').forEach(colorizeSelect);
+}
+document.addEventListener('change', (e) => {
+  if(e.target.matches && e.target.matches('select[data-dockey], select[data-impkey], select[data-deckey], select[data-padraokey]')){
+    colorizeSelect(e.target);
+    if(e.target.matches('select[data-impkey]') && e.target.value === 'CONCLUIDO'){
+      const impKey = e.target.dataset.impkey;
+      const c = DATA.companies.find(x => x.id === currentProfileId);
+      if(c){
+        guiaTargetKey = impKey;
+        guiaTargetCompanyId = c.id;
+        $('#guiaFileInput').value = '';
+        $('#guiaFileInput').click();
+      }
+    }
+  }
+});
+
+/* ---------------- guias de impostos (anexo em PDF) ---------------- */
+let guiaTargetKey = null;
+let guiaTargetCompanyId = null;
+
+$('#guiaFileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  const c = DATA.companies.find(x => x.id === guiaTargetCompanyId);
+  if(!guiaTargetKey || !c) return;
+
+  // sincroniza tudo que está selecionado na tela agora (mesmo sem ter clicado em "Salvar")
+  // pra não perder a escolha de Concluído ao recarregar a seção depois de anexar
+  const impostosSecEl = document.getElementById('impostosSection');
+  if(impostosSecEl){
+    const novoImp = { ...(c.impostos||{}) };
+    impostosSecEl.querySelectorAll('select[data-impkey]').forEach(sel => { novoImp[sel.dataset.impkey] = sel.value; });
+    c.impostos = novoImp;
+    const novoImpV = { ...(c.impostosValores||{}) };
+    impostosSecEl.querySelectorAll('input[data-impvalue]').forEach(inp => { novoImpV[inp.dataset.impvalue] = moneyStrToNumber(inp.value); });
+    c.impostosValores = novoImpV;
+  }
+  const docsSecEl = document.getElementById('docsSection');
+  if(docsSecEl){
+    const novoDoc = { ...(c.documentos||{}) };
+    docsSecEl.querySelectorAll('select[data-dockey]').forEach(sel => { novoDoc[sel.dataset.dockey] = sel.value; });
+    c.documentos = novoDoc;
+  }
+  const decSecEl = document.getElementById('declaracaoSection');
+  if(decSecEl){
+    const novoDec = { ...(c.declaracao||{}) };
+    decSecEl.querySelectorAll('select[data-deckey]').forEach(sel => { novoDec[sel.dataset.deckey] = sel.value; });
+    c.declaracao = novoDec;
+  }
+  const pct = docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao);
+  c.status = statusFromProgress(pct);
+
+  if(!file){
+    // usuário cancelou o seletor de arquivo — ainda assim mantém o status marcado
+    await saveData();
+    render();
+    if(impostosSecEl) renderImpostosSection(c, true);
+    return;
+  }
+  if(file.type !== 'application/pdf'){
+    toast('Selecione um arquivo em PDF. O status foi salvo mesmo assim.');
+    await saveData();
+    if(impostosSecEl) renderImpostosSection(c, true);
+    return;
+  }
+  if(file.size > 3 * 1024 * 1024){
+    toast('O PDF é muito grande (máximo 3MB). O status foi salvo, mas a guia não foi anexada.');
+    await saveData();
+    if(impostosSecEl) renderImpostosSection(c, true);
+    return;
+  }
+  try{
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    c.impostosGuias = c.impostosGuias || {};
+    c.impostosGuias[guiaTargetKey] = { filename: file.name, dataUrl };
+    const ok = await saveData();
+    toast(ok ? 'Status salvo e guia anexada com sucesso.' : 'Não foi possível salvar a guia.');
+    if(impostosSecEl) renderImpostosSection(c, true);
+    render();
+  }catch(err){
+    console.error(err);
+    toast('Não foi possível anexar o arquivo.');
+  }
+});
+
+function downloadGuia(c, key){
+  const g = (c.impostosGuias || {})[key];
+  if(!g) return;
+  const a = document.createElement('a');
+  a.href = g.dataUrl;
+  a.download = g.filename || 'guia.pdf';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function verGuia(g){
+  if(!g) return;
+  $('#verGuiaTitulo').textContent = g.filename || 'Guia';
+  $('#verGuiaFrame').src = g.dataUrl;
+  $('#btnBaixarGuiaAberta').onclick = () => {
+    const a = document.createElement('a');
+    a.href = g.dataUrl;
+    a.download = g.filename || 'guia.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+  openModal('#modalVerGuia');
+}
+
+async function removerGuia(c, key){
+  if(!confirm('Remover essa guia anexada?')) return;
+  if(c.impostosGuias) delete c.impostosGuias[key];
+  await saveData();
+  toast('Guia removida.');
+}
+
+function docField(label, value){
+  return `<div><span class="small-muted">${label}</span><br><span class="status-pill ${docPillClass(value)}">${escapeHtml(value)}</span></div>`;
+}
+function fmtMoney(v){
+  const n = parseFloat(v);
+  if(isNaN(n)) return null;
+  return n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
+function digitsToMoneyStr(digits){
+  const n = parseInt(digits || '0', 10);
+  let str = (n/100).toFixed(2);
+  let [intPart, decPart] = str.split('.');
+  intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return intPart + ',' + decPart;
+}
+function moneyStrToNumber(str){
+  const digits = (str||'').replace(/\D/g,'');
+  if(!digits) return null;
+  return parseInt(digits,10) / 100;
+}
+function applyMoneyMask(input){
+  input.addEventListener('input', () => {
+    const digits = input.value.replace(/\D/g,'');
+    input.value = digits ? digitsToMoneyStr(digits) : '';
+  });
+}
+function docFieldWithValue(label, statusValue, moneyValue){
+  const money = fmtMoney(moneyValue);
+  return `<div>
+    ${label ? `<span class="small-muted">${label}</span><br>` : ''}
+    <span class="status-pill ${docPillClass(statusValue)}">${escapeHtml(statusValue)}</span>
+    ${money ? `<div style="margin-top:4px;font-size:.82rem;font-weight:700">${money}</div>` : ''}
+  </div>`;
+}
+
+async function copyValue(text, label){
+  if(!text){ toast('Nada para copiar.'); return; }
+  try{
+    await navigator.clipboard.writeText(text);
+    toast((label||'Valor')+' copiado!');
+  }catch(e){
+    toast('Não foi possível copiar.');
+  }
+}
+function copyableField(label, value){
+  const v = escapeHtml(value)||'—';
+  const hasValue = !!(value||'').trim();
+  return `<div>
+    <span class="small-muted">${label}</span><br>
+    <span class="copy-field" ${hasValue?`data-copy="${v}" data-label="${label}"`:''} style="display:inline-flex;align-items:center;gap:6px;${hasValue?'cursor:pointer':''}">
+      <strong>${v}</strong>${hasValue?'<span style="font-size:.8rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>':''}
+    </span>
+  </div>`;
+}
+
+/* ---------------- render (tela inicial) ---------------- */
+function render(){
+  renderList();
+  const badge = $('#baixadasCount');
+  if(badge) badge.textContent = DATA.companies.filter(c => c.baixada).length;
+}
+
+function isVencendoEsteMes(vencimentoISO){
+  if(!vencimentoISO) return false;
+  const hoje = new Date();
+  const [y,m] = vencimentoISO.split('-');
+  return parseInt(y) === hoje.getFullYear() && parseInt(m) === (hoje.getMonth()+1);
+}
+
+function renderList(){
+  const q = $('#searchInput').value.trim().toLowerCase();
+  let list = DATA.companies.filter(c => !c.baixada).sort((a,b)=>a.razaoSocial.localeCompare(b.razaoSocial));
+
+  if(q){
+    list = list.filter(c =>
+      c.razaoSocial.toLowerCase().includes(q) ||
+      (c.cnpj||'').includes(q) ||
+      (c.responsaveis||'').toLowerCase().includes(q) ||
+      (c.municipio||'').toLowerCase().includes(q) ||
+      (c.numero||'').toLowerCase().includes(q)
+    );
+  }
+  if($('#filtroCertVencendo').checked){
+    list = list.filter(c => isVencendoEsteMes(c.vencimento));
+  }
+  const homeRegime = $('#homeRegimeFilter').value;
+  if(homeRegime){
+    list = list.filter(c => c.regime === homeRegime);
+  }
+
+  $('#clientCount').textContent = list.length;
+  const box = $('#clientList');
+
+  if(list.length === 0){
+    box.innerHTML = `<div class="empty">Nenhuma empresa encontrada.</div>`;
+    return;
+  }
+
+  box.innerHTML = list.map(c => {
+    const vencendo = isVencendoEsteMes(c.vencimento);
+    const vencTexto = c.vencimento ? `· <span style="${vencendo?'color:var(--red);font-weight:700':''}">vence ${fmtDate(c.vencimento)}</span>` : '';
+    return `
+    <div class="client-row" data-id="${c.id}">
+      <div class="client-main">
+        <div class="avatar">${initials(c.razaoSocial)||'?'}</div>
+        <div style="min-width:0">
+          <div class="client-name">${escapeHtml(c.razaoSocial)}</div>
+          <div class="client-meta">${c.numero?('Nº '+c.numero+' · '):''}${c.municipio||''}${c.uf?'/'+c.uf:''} ${vencTexto}</div>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" data-open="${c.id}" style="flex:none">Abrir perfil</button>
+    </div>`;
+  }).join('');
+
+  $$('#clientList .client-row').forEach(row => row.addEventListener('click', () => openEditFromList(row.dataset.id)));
+}
+
+function openEditFromList(id){
+  const c = DATA.companies.find(x => x.id === id);
+  if(!c) return;
+  fillForm(c);
+  $('#empresaModalTitle').textContent = c.razaoSocial;
+  openModal('#modalEmpresa');
+}
+
+/* ---------------- modals generic ---------------- */
+function openModal(id){ $(id).classList.add('show'); }
+function closeModal(id){ $(id).classList.remove('show'); }
+$$('[data-close]').forEach(btn => btn.addEventListener('click', (e) => closeModal('#'+e.target.closest('.overlay').id)));
+$$('.overlay').forEach(ov => ov.addEventListener('click', (e) => { if(e.target===ov) closeModal('#'+ov.id); }));
+
+$('#searchInput').addEventListener('input', debounce(renderList, 150));
+$('#filtroCertVencendo').addEventListener('change', renderList);
+$('#homeRegimeFilter').addEventListener('change', renderList);
+
+/* ---------------- Apuração do Mês (nova tela com contagens) ---------------- */
+let apurFilter = 'todas';
+
+function renderApuracao(){
+  const list = DATA.companies.filter(c => !c.baixada);
+  $('#aTotal').textContent = list.length;
+  $('#aPendente').textContent = list.filter(c=>c.status==='PENDENTE').length;
+  $('#aAndamento').textContent = list.filter(c=>c.status==='ANDAMENTO').length;
+  $('#aConcluida').textContent = list.filter(c=>c.status==='CONCLUIDA').length;
+  $('#aFinalizadas').textContent = list.filter(c=>hasImpostoConcluido(c)).length;
+  populateImpostoTipoFilter();
+  renderApurList();
+}
+
+function populateImpostoTipoFilter(){
+  const sel = $('#apurImpostoTipoFilter');
+  const currentValue = sel.value;
+  const custom = (DATA.impostosCustom || []).map(f => [f.key, f.label]);
+  const all = IMPOSTOS_FIELDS.map(([k,label]) => [k,label]).concat(custom);
+  sel.innerHTML = `<option value="">Tipo de imposto: todos</option>` +
+    all.map(([k,label]) => `<option value="${k}">${escapeHtml(label)}</option>`).join('');
+  if(all.some(([k]) => k === currentValue)) sel.value = currentValue;
+}
+
+function renderApurList(){
+  $('#apurImpostoTipoFilter').style.display = (apurFilter === 'finalizadas') ? 'inline-flex' : 'none';
+  const q = $('#apurSearch').value.trim().toLowerCase();
+  let list = DATA.companies.filter(c => !c.baixada);
+
+  if(q){
+    list = list.filter(c =>
+      c.razaoSocial.toLowerCase().includes(q) ||
+      (c.cnpj||'').includes(q) ||
+      (c.responsaveis||'').toLowerCase().includes(q) ||
+      (c.municipio||'').toLowerCase().includes(q) ||
+      (c.numero||'').toLowerCase().includes(q)
+    );
+  }
+  if(apurFilter === 'finalizadas'){
+    list = list.filter(c => hasImpostoConcluido(c));
+  } else if(apurFilter !== 'todas'){
+    list = list.filter(c => c.status === apurFilter);
+  }
+  const decFilter = $('#apurDeclaracaoFilter').value;
+  if(decFilter){
+    list = list.filter(c => ((c.declaracao && c.declaracao.declaracao) || 'PENDENTE') === decFilter);
+  }
+  const dificFilter = $('#apurDificuldadeFilter').value;
+  if(dificFilter){
+    list = list.filter(c => c.dificuldade === dificFilter);
+  }
+  const regimeFilter = $('#apurRegimeFilter').value;
+  if(regimeFilter){
+    list = list.filter(c => c.regime === regimeFilter);
+  }
+  const impostoTipoFilter = $('#apurImpostoTipoFilter').value;
+  if(impostoTipoFilter){
+    list = list.filter(c => (c.impostos && c.impostos[impostoTipoFilter]) === 'CONCLUIDO');
+  }
+
+  const ordenarPor = $('#apurOrdenarPor').value;
+  $('#apurDragHint').style.display = (ordenarPor === 'manual') ? 'block' : 'none';
+  const semVenc = '9999-99-99';
+  function manualIdx(id){
+    const arr = DATA.ordemApuracaoManual || [];
+    const idx = arr.indexOf(id);
+    return idx === -1 ? Infinity : idx;
+  }
+  list = list.slice().sort((a,b) => {
+    switch(ordenarPor){
+      case 'manual': {
+        const d = manualIdx(a.id) - manualIdx(b.id);
+        return d !== 0 ? d : a.razaoSocial.localeCompare(b.razaoSocial);
+      }
+      case 'nome_za': return b.razaoSocial.localeCompare(a.razaoSocial);
+      case 'venc_prox': return (a.vencimento||semVenc).localeCompare(b.vencimento||semVenc);
+      case 'venc_dist': return (b.vencimento||'').localeCompare(a.vencimento||'');
+      case 'progresso_menor': return docsProgressPercent(a.documentos, a.documentosPadrao, a.declaracao) - docsProgressPercent(b.documentos, b.documentosPadrao, b.declaracao);
+      case 'progresso_maior': return docsProgressPercent(b.documentos, b.documentosPadrao, b.declaracao) - docsProgressPercent(a.documentos, a.documentosPadrao, a.declaracao);
+      default: return a.razaoSocial.localeCompare(b.razaoSocial);
+    }
+  });
+
+  $('#apurCount').textContent = list.length + (list.length===1 ? ' empresa encontrada' : ' empresas encontradas');
+  const box = $('#apurList');
+
+  if(list.length === 0){
+    box.innerHTML = `<div class="empty">Nenhuma empresa encontrada.</div>`;
+    return;
+  }
+
+  box.innerHTML = list.map(c => `
+    <div class="client-row" data-id="${c.id}" ${ordenarPor==='manual' ? 'draggable="true"' : ''} style="${ordenarPor==='manual' ? 'cursor:grab' : ''}">
+      <div class="client-main">
+        ${ordenarPor==='manual' ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1.1em" height="1.1em" fill="currentColor" class="icon-svg" style="color:var(--muted);flex:none;margin-right:2px"><circle cx="8" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg>` : ''}
+        <div class="avatar">${initials(c.razaoSocial)||'?'}</div>
+        <div style="min-width:0">
+          <div class="client-name">${escapeHtml(c.razaoSocial)}</div>
+          <div class="client-meta">${c.numero?('Nº '+c.numero+' · '):''}${c.municipio||''}${c.uf?'/'+c.uf:''} ${c.vencimento ? '· vence '+fmtDate(c.vencimento) : ''}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex:none">
+        ${apurFilter === 'todas' ? `
+          <span class="status-pill ${statusClass(c.status)}">${statusLabel(c.status)}</span>
+          <span style="display:inline-flex;align-items:center;gap:5px">
+            <span style="display:inline-block;width:60px;height:7px;background:var(--line);border-radius:4px;overflow:hidden">
+              <span style="display:block;height:100%;width:${docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao)}%;background:var(--green)"></span>
+            </span>
+            <span class="small-muted" style="font-size:.7rem">${docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao)}%</span>
+          </span>
+        ` : ''}
+        ${apurFilter === 'finalizadas'
+          ? `<button class="btn btn-outline btn-sm" data-verimpostos="${c.id}">Ver</button>`
+          : `<button class="btn btn-outline btn-sm" data-iniciar="${c.id}">Iniciar</button>`}
+      </div>
+    </div>`).join('');
+
+  $$('#apurList [data-iniciar]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeModal('#modalApuracao');
+    perfilReturnTo = 'apuracao';
+    openPerfil(btn.dataset.iniciar, true);
+  }));
+  $$('#apurList [data-verimpostos]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const c = DATA.companies.find(x => x.id === btn.dataset.verimpostos);
+    if(c) openImpostosConcluidosView(c);
+  }));
+
+  if(ordenarPor === 'manual'){
+    let dragSrcId = null;
+    $$('#apurList .client-row[draggable="true"]').forEach(row => {
+      row.addEventListener('dragstart', () => {
+        dragSrcId = row.dataset.id;
+        row.style.opacity = '0.4';
+      });
+      row.addEventListener('dragend', () => { row.style.opacity = ''; });
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        row.style.background = 'var(--bg)';
+      });
+      row.addEventListener('dragleave', () => { row.style.background = ''; });
+      row.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        row.style.background = '';
+        const targetId = row.dataset.id;
+        if(!dragSrcId || dragSrcId === targetId) return;
+        await reorderManual(dragSrcId, targetId);
+      });
+    });
+  }
+}
+
+async function reorderManual(srcId, targetId){
+  const allIds = DATA.companies.filter(c => !c.baixada).sort((a,b)=>a.razaoSocial.localeCompare(b.razaoSocial)).map(c=>c.id);
+  let arr = (DATA.ordemApuracaoManual || []).filter(id => allIds.includes(id));
+  allIds.forEach(id => { if(!arr.includes(id)) arr.push(id); });
+
+  const fromIdx = arr.indexOf(srcId);
+  if(fromIdx === -1) return;
+  arr.splice(fromIdx, 1);
+  const toIdx = arr.indexOf(targetId);
+  arr.splice(toIdx === -1 ? arr.length : toIdx, 0, srcId);
+
+  DATA.ordemApuracaoManual = arr;
+  await saveData();
+  renderApurList();
+}
+
+function openImpostosConcluidosView(c){
+  $('#histDetTitulo').textContent = c.razaoSocial;
+  $('#histDetData').textContent = 'Impostos marcados como Concluído';
+  const imp = c.impostos || {};
+  const impV = c.impostosValores || {};
+  const resp = c.responsavelEmpresa || {};
+
+  let infoTop = `
+    <div class="row2">
+      ${copyableField('CNPJ / CPF', c.cnpj)}
+      <div><span class="small-muted">Nome do responsável</span><br><strong>${escapeHtml(resp.nome)||'—'}</strong></div>
+    </div>`;
+  const contatoRows = [];
+  if((resp.telefone||'').trim()) contatoRows.push(copyableField('Telefone', resp.telefone));
+  if((resp.email||'').trim()) contatoRows.push(copyableField('E-mail', resp.email));
+  if((resp.outros||'').trim()) contatoRows.push(copyableField('Outros', resp.outros));
+  for(let i=0;i<contatoRows.length;i+=2){
+    infoTop += `<div class="row2" style="margin-top:10px">${contatoRows[i]}${contatoRows[i+1]||''}</div>`;
+  }
+
+  const fields = getImpostosFieldsForCompany(c).filter(([k]) => imp[k] === 'CONCLUIDO');
+  let body = infoTop + `<div class="divider"></div>`;
+  if(fields.length === 0){
+    body += `<div class="empty">Nenhum imposto concluído ainda para esta empresa.</div>`;
+  } else {
+    body += fields.map(([k,label,,def]) => `
+      <div class="client-row" style="cursor:default;align-items:flex-start;flex-wrap:wrap;gap:10px">
+        <div style="min-width:140px;font-weight:700;font-size:.85rem;padding-top:2px">${escapeHtml(label)}</div>
+        <div style="flex:1;min-width:160px">${docFieldWithValue('', imp[k]||def, impV[k])}</div>
+        <div>${guiaBadgeHtml(c,k)}</div>
+      </div>`).join('');
+  }
+  $('#histDetBody').innerHTML = body;
+  $$('#histDetBody .copy-field[data-copy]').forEach(el => {
+    el.addEventListener('click', () => copyValue(el.dataset.copy, el.dataset.label));
+  });
+  bindGuiaButtons($('#histDetBody'), c, () => openImpostosConcluidosView(c));
+  openModal('#modalHistoricoDetalhe');
+}
+
+$$('#apurChips .chip').forEach(chip => chip.addEventListener('click', () => {
+  apurFilter = chip.dataset.afilter;
+  $$('#apurChips .chip').forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');
+  if(apurFilter !== 'finalizadas') $('#apurImpostoTipoFilter').value = '';
+  renderApurList();
+}));
+$('#apurSearch').addEventListener('input', debounce(renderApurList, 150));
+$('#apurDeclaracaoFilter').addEventListener('change', renderApurList);
+$('#apurDificuldadeFilter').addEventListener('change', renderApurList);
+$('#apurRegimeFilter').addEventListener('change', renderApurList);
+$('#apurImpostoTipoFilter').addEventListener('change', renderApurList);
+$('#apurOrdenarPor').addEventListener('change', renderApurList);
+$('#btnApuracao').addEventListener('click', () => {
+  apurFilter = 'todas';
+  $$('#apurChips .chip').forEach(c=>c.classList.remove('active'));
+  $('#apurChips .chip.total').classList.add('active');
+  $('#apurSearch').value = '';
+  $('#apurDeclaracaoFilter').value = '';
+  $('#apurDificuldadeFilter').value = '';
+  $('#apurRegimeFilter').value = '';
+  $('#apurImpostoTipoFilter').value = '';
+  $('#apurOrdenarPor').value = 'manual';
+  renderApuracao();
+  openModal('#modalApuracao');
+});
+
+/* ---------------- cadastro / edição empresa ---------------- */
+function clearForm(){
+  ['fNumero','fRazao','fCnpj','fIe','fMunicipio','fResponsaveis','fVencimento','fRespNome','fRespTelefone','fRespEmail','fRespOutros','fPrefLink','fPrefLogin','fPrefSenha','fSis1Nome','fSis1Link','fSis1Login','fSis1Senha','fSis2Nome','fSis2Link','fSis2Login','fSis2Senha'].forEach(id => $('#'+id).value='');
+  $('#fAtividade').value='';
+  $('#fUf').value='';
+  $('#fRegime').value='';
+  $('#fDificuldade').value='FACIL';
+  $('#fBaixada').checked=false;
+  $('#fMotivoBaixa').value='';
+  $('#motivoBaixaWrap').style.display='none';
+  $('#empId').value='';
+  $('#btnDeleteEmpresaForm').style.display='none';
+  $('#cnpjLookupStatus').textContent='';
+}
+
+$('#fCnpj').addEventListener('input', (e) => {
+  const pos = e.target.selectionStart;
+  const before = e.target.value.length;
+  e.target.value = maskDoc(e.target.value);
+  const diff = e.target.value.length - before;
+  e.target.setSelectionRange(pos+diff, pos+diff);
+
+  const digits = e.target.value.replace(/\D/g,'');
+  if(digits.length === 14 && /^\d{14}$/.test(digits)){
+    lookupCnpjNaReceita(digits);
+  } else {
+    $('#cnpjLookupStatus').textContent = '';
+  }
+});
+
+async function lookupCnpjNaReceita(cnpjDigits){
+  const status = $('#cnpjLookupStatus');
+  status.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Buscando dados na Receita Federal...';
+  try{
+    const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjDigits}`);
+    if(!res.ok) throw new Error('CNPJ não encontrado');
+    const data = await res.json();
+    if(data.razao_social) $('#fRazao').value = data.razao_social;
+    if(data.municipio) $('#fMunicipio').value = data.municipio;
+    if(data.uf) $('#fUf').value = data.uf;
+    status.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg> Dados preenchidos automaticamente — confira antes de salvar.';
+    status.style.color = 'var(--green,#1b7a41)';
+  }catch(e){
+    status.textContent = 'Não achei esse CNPJ na Receita Federal. Preencha os dados manualmente.';
+    status.style.color = 'var(--muted)';
+  }
+}
+
+$('#openEmpresa').addEventListener('click', () => {
+  clearForm();
+  $('#empresaModalTitle').textContent = 'Nova empresa';
+  openModal('#modalEmpresa');
+});
+
+function normalizeAtividade(v){
+  const a = (v||'').toUpperCase().replace('É','E').replace(/\s/g,'');
+  if(a.includes('SERVIC') && a.includes('COMERC')) return 'SERVIÇOS/COMÉRCIO';
+  if(a.includes('COMERC') && a.includes('INDUST')) return 'COMÉRCIO/INDUSTRIA';
+  if(a.includes('INDUST') && a.includes('SERVIC')) return 'INDUSTRIA/SERVIÇOS';
+  if(a.includes('SERVIC')) return 'SERVIÇOS';
+  if(a.includes('COMERC')) return 'COMÉRCIO';
+  if(a.includes('INDUST')) return 'INDUSTRIA';
+  return '';
+}
+
+function fillForm(c){
+  $('#empId').value = c.id;
+  $('#btnDeleteEmpresaForm').style.display='inline-flex';
+  $('#cnpjLookupStatus').textContent='';
+  $('#fNumero').value = c.numero||'';
+  $('#fRazao').value = c.razaoSocial||'';
+  $('#fCnpj').value = c.cnpj||'';
+  $('#fIe').value = c.ie||'';
+  $('#fAtividade').value = normalizeAtividade(c.atividade);
+  $('#fMunicipio').value = c.municipio||'';
+  $('#fUf').value = c.uf||'';
+  $('#fDificuldade').value = c.dificuldade||'FACIL';
+  $('#fResponsaveis').value = c.responsaveis||'';
+  $('#fRegime').value = c.regime||'';
+  $('#fVencimento').value = c.vencimento||'';
+  $('#fBaixada').checked = !!c.baixada;
+  $('#fMotivoBaixa').value = c.motivoBaixa||'';
+  $('#motivoBaixaWrap').style.display = c.baixada ? 'block' : 'none';
+  $('#fRespNome').value = (c.responsavelEmpresa && c.responsavelEmpresa.nome) || '';
+  $('#fRespTelefone').value = (c.responsavelEmpresa && c.responsavelEmpresa.telefone) || '';
+  $('#fRespEmail').value = (c.responsavelEmpresa && c.responsavelEmpresa.email) || '';
+  $('#fRespOutros').value = (c.responsavelEmpresa && c.responsavelEmpresa.outros) || '';
+  const s = c.senhas || {};
+  $('#fPrefLink').value = (s.prefeitura && s.prefeitura.link) || '';
+  $('#fPrefLogin').value = (s.prefeitura && s.prefeitura.login) || '';
+  $('#fPrefSenha').value = (s.prefeitura && s.prefeitura.senha) || '';
+  $('#fSis1Nome').value = (s.sistema1 && s.sistema1.nome) || '';
+  $('#fSis1Link').value = (s.sistema1 && s.sistema1.link) || '';
+  $('#fSis1Login').value = (s.sistema1 && s.sistema1.login) || '';
+  $('#fSis1Senha').value = (s.sistema1 && s.sistema1.senha) || '';
+  $('#fSis2Nome').value = (s.sistema2 && s.sistema2.nome) || '';
+  $('#fSis2Link').value = (s.sistema2 && s.sistema2.link) || '';
+  $('#fSis2Login').value = (s.sistema2 && s.sistema2.login) || '';
+  $('#fSis2Senha').value = (s.sistema2 && s.sistema2.senha) || '';
+}
+
+$('#fBaixada').addEventListener('change', () => {
+  $('#motivoBaixaWrap').style.display = $('#fBaixada').checked ? 'block' : 'none';
+});
+
+$('#btnDeleteEmpresaForm').addEventListener('click', async () => {
+  const id = $('#empId').value;
+  if(!id) return;
+  const c = DATA.companies.find(x => x.id === id);
+  if(!c) return;
+  if(!confirm(`Excluir "${c.razaoSocial}" definitivamente? Todo o histórico, senhas e apurações dessa empresa serão apagados. Essa ação não pode ser desfeita.\n\nSe você só quer parar de apurar essa empresa sem perder os dados, marque "Empresa baixada" em vez de excluir.`)) return;
+  DATA.companies = DATA.companies.filter(x => x.id !== id);
+  await saveData();
+  render();
+  closeModal('#modalEmpresa');
+  toast('Empresa excluída.');
+});
+
+$('#saveEmpresa').addEventListener('click', async () => {
+  const razao = $('#fRazao').value.trim();
+  if(!razao){ toast('Informe a razão social.'); return; }
+  const docVal = $('#fCnpj').value.trim();
+  if(docVal && !isValidDoc(docVal)){
+    if(!confirm('O CNPJ/CPF informado não tem 11 dígitos (CPF) nem 14 caracteres (CNPJ numérico ou alfanumérico). Salvar assim mesmo?')) return;
+  }
+  const isBaixada = $('#fBaixada').checked;
+  const motivoBaixa = $('#fMotivoBaixa').value.trim();
+  if(isBaixada && !motivoBaixa){
+    toast('Informe o motivo da baixa para arquivar a empresa.');
+    $('#fMotivoBaixa').focus();
+    return;
+  }
+  const id = $('#empId').value || uid('emp');
+  const existing = DATA.companies.find(c => c.id === id);
+
+  const payload = {
+    id,
+    numero: $('#fNumero').value.trim(),
+    razaoSocial: razao,
+    cnpj: $('#fCnpj').value.trim(),
+    ie: $('#fIe').value.trim(),
+    atividade: $('#fAtividade').value.trim(),
+    municipio: $('#fMunicipio').value.trim(),
+    uf: $('#fUf').value.trim().toUpperCase(),
+    dificuldade: $('#fDificuldade').value,
+    responsaveis: $('#fResponsaveis').value.trim(),
+    regime: $('#fRegime').value,
+    status: existing ? existing.status : 'PENDENTE',
+    vencimento: $('#fVencimento').value,
+    baixada: isBaixada,
+    motivoBaixa: isBaixada ? motivoBaixa : '',
+    dataBaixa: isBaixada ? ((existing && existing.baixada) ? existing.dataBaixa : new Date().toISOString()) : '',
+    situacaoDocumentos: (existing && existing.situacaoDocumentos) || '',
+    responsavelEmpresa: {
+      nome: $('#fRespNome').value.trim(),
+      telefone: $('#fRespTelefone').value.trim(),
+      email: $('#fRespEmail').value.trim(),
+      outros: $('#fRespOutros').value.trim()
+    },
+    senhas: {
+      prefeitura: { link: $('#fPrefLink').value.trim(), login: $('#fPrefLogin').value.trim(), senha: $('#fPrefSenha').value.trim() },
+      sistema1: { nome: $('#fSis1Nome').value.trim(), link: $('#fSis1Link').value.trim(), login: $('#fSis1Login').value.trim(), senha: $('#fSis1Senha').value.trim() },
+      sistema2: { nome: $('#fSis2Nome').value.trim(), link: $('#fSis2Link').value.trim(), login: $('#fSis2Login').value.trim(), senha: $('#fSis2Senha').value.trim() }
+    },
+    observacoes: (existing && existing.observacoes) || ''
+  };
+
+  if(existing){ Object.assign(existing, payload); }
+  else { DATA.companies.push(payload); }
+
+  await saveData();
+  render();
+  closeModal('#modalEmpresa');
+  toast('Empresa salva com sucesso.');
+});
+
+const DOC_OPTIONS = [
+  ['SEM MOVIMENTO','Sem movimento'],
+  ['PENDENTE','Pendente'], ['NÃO TEM','Não tem'], ['CONCLUIDO','Concluído']
+];
+const DOC_OPTIONS_ALUGUEL = [
+  ['NÃO TEM','Não tem'], ['LANÇAR','Lançar'], ['CONCLUIDO','Concluído']
+];
+const DOC_OPTIONS_PENDCONC = [
+  ['PENDENTE','Pendente'], ['CONCLUIDO','Concluído']
+];
+const DOC_FIELDS = [
+  ['nfSaida','NF de Saída', DOC_OPTIONS, 'PENDENTE'], ['nfsPrestado','NFS Serv. Prestado', DOC_OPTIONS, 'PENDENTE'],
+  ['nfsTomado','NFS Serv. Tomado', DOC_OPTIONS, 'PENDENTE'], ['nfEntrada','NF de Entrada', DOC_OPTIONS, 'PENDENTE'],
+  ['cte','CT-e', DOC_OPTIONS, 'PENDENTE'], ['aluguel','Aluguel', DOC_OPTIONS_ALUGUEL, 'NÃO TEM'],
+  ['naoLancadas','NF Não Lançadas', DOC_OPTIONS_PENDCONC, 'PENDENTE'], ['regerar','Regerar', DOC_OPTIONS_PENDCONC, 'PENDENTE']
+];
+
+const IMPOSTOS_OPTIONS = [
+  ['NÃO PAGA','Não paga'], ['NÃO TEM','Não tem'], ['CALCULAR','Calcular'], ['CONCLUIDO','Concluído']
+];
+const IMPOSTOS_FIELDS = [
+  ['difal','DIFAL', IMPOSTOS_OPTIONS, 'CALCULAR'], ['crf','CRF', IMPOSTOS_OPTIONS, 'CALCULAR'],
+  ['irrf','IRRF', IMPOSTOS_OPTIONS, 'CALCULAR'], ['reinf','REINF', IMPOSTOS_OPTIONS, 'CALCULAR'],
+  ['issqnPrest','ISSQN Prest.', IMPOSTOS_OPTIONS, 'CALCULAR'], ['issqnToma','ISSQN Toma.', IMPOSTOS_OPTIONS, 'CALCULAR']
+];
+function getImpostosFieldsForCompany(c){
+  const custom = (DATA.impostosCustom || [])
+    .filter(f => (f.regimes||[]).includes(c.regime))
+    .map(f => [f.key, f.label, IMPOSTOS_OPTIONS, 'CALCULAR']);
+  return IMPOSTOS_FIELDS.concat(custom);
+}
+function hasImpostoConcluido(c){
+  const d = c.impostos || {};
+  return getImpostosFieldsForCompany(c).some(([k]) => d[k] === 'CONCLUIDO');
+}
+
+const DECLARACAO_OPTIONS = [
+  ['PENDENTE','Pendente'], ['SOLICITADO','Solicitado'],
+  ['CLIENTE_ENVIOU','Cliente enviou'], ['RELATORIO_PREFEITURA','Relatório da Prefeitura']
+];
+const PREFEITURA_OPTIONS = [
+  ['NÃO TEM ACESSO','Não tem acesso'], ['NÃO PRECISA','Não precisa'],
+  ['PENDENTE','Pendente'], ['MOVIMENTO ENCERRADO','Movimento encerrado']
+];
+const DCTF_WEB_OPTIONS = [
+  ['NÃO PRECISA','Não precisa'], ['FECHAR DCTF','Fechar DCTF'], ['CONCLUIDO','Concluído']
+];
+const DECLARACAO_FIELDS = [
+  ['declaracao','Declaração', DECLARACAO_OPTIONS, 'PENDENTE'],
+  ['prefeitura','Prefeitura', PREFEITURA_OPTIONS, 'PENDENTE'],
+  ['dctfWeb','DCTF WEB', DCTF_WEB_OPTIONS, 'NÃO PRECISA']
+];
+
+const DOC_RESOLVED_VALUES = new Set(['CONCLUIDO', 'NÃO TEM', 'SEM MOVIMENTO']);
+function getFieldDefault(c, padraoKey, key, builtin){
+  return (c && c[padraoKey] && c[padraoKey][key]) || builtin;
+}
+function getDocDefault(c, key, builtin){
+  return getFieldDefault(c, 'documentosPadrao', key, builtin);
+}
+function docsProgressPercent(documentos, padrao, declaracao){
+  const d = documentos || {};
+  const p = padrao || {};
+  const dec = declaracao || {};
+  let resolved = DOC_FIELDS.filter(([k, , , def]) => DOC_RESOLVED_VALUES.has(d[k] || p[k] || def)).length;
+  let total = DOC_FIELDS.length;
+
+  total++; // Declaração
+  if(dec.declaracao === 'CLIENTE_ENVIOU' || dec.declaracao === 'RELATORIO_PREFEITURA') resolved++;
+  total++; // Prefeitura
+  if(dec.prefeitura === 'MOVIMENTO ENCERRADO') resolved++;
+
+  return Math.round((resolved / total) * 100);
+}
+function statusFromProgress(percent){
+  if(percent >= 100) return 'CONCLUIDA';
+  if(percent > 0) return 'ANDAMENTO';
+  return 'PENDENTE';
+}
+
+function updateDocsProgressUI(percent){
+  const bar = $('#docsProgressBar');
+  const label = $('#docsProgressLabel');
+  const pill = $('#statusPill');
+  if(bar) bar.style.width = percent + '%';
+  if(label) label.textContent = percent + '%';
+  if(pill){
+    const st = statusFromProgress(percent);
+    pill.className = 'status-pill ' + statusClass(st);
+    pill.textContent = statusLabel(st);
+  }
+}
+
+function openPadraoModal(c, fields, padraoKey, title, onSaved){
+  fields = fields || DOC_FIELDS;
+  padraoKey = padraoKey || 'documentosPadrao';
+  $('#padraoModalTitle').textContent = title || 'Padrão da Apuração';
+  const p = c[padraoKey] || {};
+  const box = $('#padraoFields');
+  const rowHtml = (k,label,options) => `
+    <div class="field">
+      <label>${label}</label>
+      <select data-padraokey="${k}">
+        <option value="">Usar padrão do sistema</option>
+        ${options.map(([v,l]) => `<option value="${v}" ${p[k]===v?'selected':''}>${l}</option>`).join('')}
+      </select>
+    </div>`;
+  const rows = [];
+  for(let i=0;i<fields.length;i+=fields.length>4?2:4){
+    rows.push(`<div class="row${fields.length>4?2:fields.length}">${fields.slice(i,i+(fields.length>4?2:fields.length)).map(([k,label,opts])=>rowHtml(k,label,opts)).join('')}</div>`);
+  }
+  box.innerHTML = rows.join('');
+  colorizeSelectsIn(box);
+  $('#btnSalvarPadrao').onclick = async () => {
+    const novoPadrao = {};
+    $$('#padraoFields select[data-padraokey]').forEach(sel => {
+      if(sel.value) novoPadrao[sel.dataset.padraokey] = sel.value;
+    });
+    c[padraoKey] = novoPadrao;
+    await saveData();
+    closeModal('#modalPadrao');
+    toast('Padrão salvo.');
+    if(onSaved) onSaved();
+  };
+  openModal('#modalPadrao');
+}
+
+function renderDocsSection(c, editMode){
+  const d = c.documentos || {};
+  const box = $('#docsSection');
+  if(!editMode){
+    box.innerHTML = `
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Apuração <button class="btn-icon" id="btnPadraoApuracao" title="Definir padrão do mês" style="width:26px;height:26px;background:var(--bg);color:var(--navy-700);border:1px solid var(--line);border-radius:7px;font-size:.8rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button></span>
+        <button class="btn btn-primary btn-sm" id="btnIniciarDocs">Iniciar</button>
+      </div>
+      <div class="row4">${DOC_FIELDS.slice(0,4).map(([k,label,,def])=>docField(label, d[k]||getDocDefault(c,k,def))).join('')}</div>
+      <div class="row4" style="margin-top:10px">${DOC_FIELDS.slice(4,8).map(([k,label,,def])=>docField(label, d[k]||getDocDefault(c,k,def))).join('')}</div>
+    `;
+    $('#btnIniciarDocs').addEventListener('click', () => {
+      renderDocsSection(c, true);
+      renderImpostosSection(c, true);
+      renderDeclaracaoSection(c, true);
+    });
+    $('#btnPadraoApuracao').addEventListener('click', () => openPadraoModal(c, DOC_FIELDS, 'documentosPadrao', 'Padrão da Apuração', () => { renderDocsSection(c, false); updateDocsProgressUI(docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao)); }));
+  } else {
+    const selectHtml = (k,label,options,def) => {
+      const eff = d[k] || getDocDefault(c,k,def);
+      return `
+      <div class="field">
+        <label>${label}</label>
+        <select data-dockey="${k}">
+          ${options.map(([v,l]) => `<option value="${v}" ${eff===v?'selected':''}>${l}</option>`).join('')}
+        </select>
+      </div>`;
+    };
+    box.innerHTML = `
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Apuração <button class="btn-icon" id="btnPadraoApuracao" title="Definir padrão do mês" style="width:26px;height:26px;background:var(--bg);color:var(--navy-700);border:1px solid var(--line);border-radius:7px;font-size:.8rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button></span>
+        <button class="btn btn-primary btn-sm" id="btnSalvarDocs">Salvar</button>
+      </div>
+      <div class="row4">${DOC_FIELDS.slice(0,4).map(([k,label,opts,def])=>selectHtml(k,label,opts,def)).join('')}</div>
+      <div class="row4">${DOC_FIELDS.slice(4,8).map(([k,label,opts,def])=>selectHtml(k,label,opts,def)).join('')}</div>
+    `;
+    $('#btnPadraoApuracao').addEventListener('click', () => openPadraoModal(c, DOC_FIELDS, 'documentosPadrao', 'Padrão da Apuração', () => { renderDocsSection(c, false); updateDocsProgressUI(docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao)); }));
+    colorizeSelectsIn(box);
+    $('#btnSalvarDocs').addEventListener('click', async () => {
+      const novo = { ...d };
+      $$('#docsSection select[data-dockey]').forEach(sel => { novo[sel.dataset.dockey] = sel.value; });
+      c.documentos = novo;
+
+      const impD = c.impostos || {};
+      const novoImp = { ...impD };
+      $$('#impostosSection select[data-impkey]').forEach(sel => { novoImp[sel.dataset.impkey] = sel.value; });
+      c.impostos = novoImp;
+
+      const impV = c.impostosValores || {};
+      const novoImpV = { ...impV };
+      $$('#impostosSection input[data-impvalue]').forEach(inp => {
+        novoImpV[inp.dataset.impvalue] = moneyStrToNumber(inp.value);
+      });
+      c.impostosValores = novoImpV;
+
+      const decD = c.declaracao || {};
+      const novoDec = { ...decD };
+      $$('#declaracaoSection select[data-deckey]').forEach(sel => { novoDec[sel.dataset.deckey] = sel.value; });
+      c.declaracao = novoDec;
+
+      const pct = docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao);
+      c.status = statusFromProgress(pct);
+      await saveData();
+      renderDocsSection(c, false);
+      renderImpostosSection(c, false);
+      renderDeclaracaoSection(c, false);
+      updateDocsProgressUI(pct);
+      render();
+      toast('Apuração atualizada.');
+    });
+    $$('#docsSection select[data-dockey]').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const live = { ...d };
+        $$('#docsSection select[data-dockey]').forEach(s => { live[s.dataset.dockey] = s.value; });
+        const liveDec = { ...(c.declaracao||{}) };
+        $$('#declaracaoSection select[data-deckey]').forEach(s => { liveDec[s.dataset.deckey] = s.value; });
+        updateDocsProgressUI(docsProgressPercent(live, null, liveDec));
+      });
+    });
+  }
+}
+
+/* ---------------- encerramento mensal e histórico ---------------- */
+function monthLabelPT(date){
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  return meses[date.getMonth()] + '/' + date.getFullYear();
+}
+
+function sanitizeFileName(name){
+  return (name||'empresa').replace(/[\\/:*?"<>|]/g,'-').trim().slice(0,80);
+}
+
+function buildCompanyPdfBlob(c, snap, label){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y = 18;
+
+  function sectionTitle(t){
+    if(y > 265){ doc.addPage(); y = 18; }
+    doc.setFontSize(12); doc.setTextColor(20,50,90);
+    doc.text(t, 12, y); y += 6;
+    doc.setDrawColor(210); doc.line(12, y-4.5, 198, y-4.5);
+    doc.setFontSize(10); doc.setTextColor(20);
+  }
+  function line(label, value){
+    if(y > 280){ doc.addPage(); y = 18; }
+    doc.text(`${label}:`, 14, y);
+    doc.text(String(value == null || value === '' ? '—' : value), 75, y);
+    y += 6;
+  }
+
+  doc.setFontSize(15);
+  doc.text(c.razaoSocial || 'Empresa', 12, y); y += 7;
+  doc.setFontSize(10); doc.setTextColor(90);
+  doc.text(`${c.municipio||''}${c.uf?'/'+c.uf:''}`, 12, y); y += 5;
+  doc.text(`Apuração encerrada: ${label}`, 12, y); y += 10;
+  doc.setTextColor(20);
+
+  sectionTitle('Identificação');
+  line('Nº (código interno)', c.numero);
+  line('CNPJ / CPF', c.cnpj);
+  line('IE', c.ie);
+  line('Regime', c.regime);
+  line('Atividade', c.atividade);
+  line('Dificuldade', c.dificuldade);
+  y += 3;
+
+  sectionTitle('Situação');
+  line('Status', statusLabel(c.status));
+  line('Vencimento/Certificado', fmtDate(c.vencimento));
+  y += 3;
+
+  const resp = c.responsavelEmpresa || {};
+  if(resp.nome || resp.telefone || resp.email || resp.outros){
+    sectionTitle('Responsável pela empresa');
+    if(resp.nome) line('Nome', resp.nome);
+    if(resp.telefone) line('Telefone', resp.telefone);
+    if(resp.email) line('E-mail', resp.email);
+    if(resp.outros) line('Outros', resp.outros);
+    y += 3;
+  }
+
+  const s = c.senhas || {};
+  const hasSenha = (o) => o && (o.nome || o.login || o.senha);
+  if(hasSenha(s.prefeitura) || hasSenha(s.sistema1) || hasSenha(s.sistema2)){
+    sectionTitle('Senhas');
+    if(hasSenha(s.prefeitura)){ line('Prefeitura — Login', s.prefeitura.login); line('Prefeitura — Senha', s.prefeitura.senha); }
+    if(hasSenha(s.sistema1)){ line((s.sistema1.nome||'Sistema 1')+' — Login', s.sistema1.login); line((s.sistema1.nome||'Sistema 1')+' — Senha', s.sistema1.senha); }
+    if(hasSenha(s.sistema2)){ line((s.sistema2.nome||'Sistema 2')+' — Login', s.sistema2.login); line((s.sistema2.nome||'Sistema 2')+' — Senha', s.sistema2.senha); }
+    y += 3;
+  }
+
+  sectionTitle('Declaração');
+  DECLARACAO_FIELDS.forEach(([k,lbl,,def]) => line(lbl, (snap.declaracao && snap.declaracao[k]) || def));
+  y += 3;
+
+  sectionTitle('Apuração');
+  DOC_FIELDS.forEach(([k,lbl,,def]) => line(lbl, (snap.documentos && snap.documentos[k]) || def));
+  y += 3;
+
+  sectionTitle('Impostos');
+  getImpostosFieldsForCompany(c).forEach(([k,lbl,,def]) => {
+    const status = (snap.impostos && snap.impostos[k]) || def;
+    const money = fmtMoney(snap.impostosValores && snap.impostosValores[k]);
+    line(lbl, money ? `${status} — ${money}` : status);
+  });
+
+  if(c.observacoesApuracao){
+    y += 3;
+    sectionTitle('Observações');
+    doc.setFontSize(9);
+    const splitObsApur = doc.splitTextToSize(c.observacoesApuracao, 184);
+    splitObsApur.forEach(t => { if(y>280){doc.addPage(); y=18;} doc.text(t,14,y); y+=5; });
+    doc.setFontSize(10);
+  }
+
+  if(c.observacoes){
+    y += 3;
+    sectionTitle('Observações (importado do PDF)');
+    doc.setFontSize(9);
+    const splitObs = doc.splitTextToSize(c.observacoes, 184);
+    splitObs.forEach(t => { if(y>280){doc.addPage(); y=18;} doc.text(t,14,y); y+=5; });
+    doc.setFontSize(10);
+  }
+
+  return doc.output('blob');
+}
+
+async function encerrarApuracaoDoMes(){
+  const label = monthLabelPT(new Date());
+  if(!confirm(`Encerrar a apuração de ${label}?\n\nIsso vai:\n• Gerar um PDF completo de cada empresa (todos os dados da tela de perfil)\n• Gerar um backup completo do sistema (.json)\n• Arquivar os dados de Apuração, Impostos e Declaração no histórico de cada empresa\n• Reiniciar esses campos para o próximo mês (usando os padrões definidos no lápis de cada empresa)\n\nVocê poderá escolher uma pasta para salvar tudo. Essa ação não pode ser desfeita.`)) return;
+
+  toast('Encerrando o mês e gerando os PDFs, aguarde...');
+
+  // monta os snapshots e os PDFs antes de resetar os campos
+  const pdfFiles = []; // {name, blob}
+  DATA.companies.filter(c => !c.baixada).forEach(c => {
+    const snap = {
+      documentos: c.documentos || {},
+      impostos: c.impostos || {},
+      impostosValores: c.impostosValores || {},
+      impostosGuias: c.impostosGuias || {},
+      declaracao: c.declaracao || {},
+      observacoesApuracao: c.observacoesApuracao || ''
+    };
+    pdfFiles.push({ name: `${sanitizeFileName(c.razaoSocial)}.pdf`, blob: buildCompanyPdfBlob(c, snap, label) });
+
+    c.historico = c.historico || [];
+    c.historico.unshift({
+      label,
+      closedAt: new Date().toISOString(),
+      documentos: snap.documentos,
+      impostos: snap.impostos,
+      impostosValores: snap.impostosValores,
+      impostosGuias: snap.impostosGuias,
+      declaracao: snap.declaracao,
+      observacoesApuracao: snap.observacoesApuracao,
+      status: c.status
+    });
+    c.documentos = {};
+    c.impostos = {};
+    c.impostosValores = {};
+    c.impostosGuias = {};
+    c.declaracao = {};
+    c.observacoesApuracao = '';
+    c.status = 'PENDENTE';
+  });
+
+  await saveData();
+  render();
+  renderApuracao();
+
+  const backupJson = JSON.stringify(DATA, null, 2);
+
+  // tenta salvar direto numa pasta escolhida pelo usuário (quando o navegador permitir)
+  let savedToRealFolder = false;
+  if(window.showDirectoryPicker){
+    try{
+      const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      const perm = await dirHandle.requestPermission({ mode: 'readwrite' });
+      if(perm === 'granted'){
+        const subDir = await dirHandle.getDirectoryHandle(`Apuracao ${label.replace('/','-')}`, { create: true });
+        const backupHandle = await subDir.getFileHandle('backup-sistema.json', { create: true });
+        const backupWritable = await backupHandle.createWritable();
+        await backupWritable.write(backupJson);
+        await backupWritable.close();
+        for(const f of pdfFiles){
+          const fh = await subDir.getFileHandle(f.name, { create: true });
+          const w = await fh.createWritable();
+          await w.write(f.blob);
+          await w.close();
+        }
+        savedToRealFolder = true;
+        folderConnected = true;
+        updateFolderStatusUI();
+      }
+    }catch(e){
+      if(e.name !== 'AbortError'){ console.error(e); }
+      // segue para o fallback de download em zip
+    }
+  }
+
+  if(savedToRealFolder){
+    toast(`Apuração de ${label} encerrada — PDFs e backup salvos na pasta escolhida.`);
+    return;
+  }
+
+  // fallback: navegador não permite pasta real aqui — baixa tudo compactado em .zip
+  try{
+    const zip = new JSZip();
+    const folder = zip.folder(`Apuracao ${label.replace('/','-')}`);
+    folder.file('backup-sistema.json', backupJson);
+    pdfFiles.forEach(f => folder.file(f.name, f.blob));
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `apuracao-${label.replace('/','-')}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast(`Apuração de ${label} encerrada — PDFs e backup baixados em .zip (este ambiente não permite escolher a pasta diretamente).`);
+  }catch(e){
+    console.error(e);
+    toast(`Apuração de ${label} encerrada, mas houve um erro ao gerar os arquivos.`);
+  }
+}
+
+if($('#btnEncerrarMes')){
+  $('#btnEncerrarMes').addEventListener('click', encerrarApuracaoDoMes);
+}
+
+/* ---------------- meses anteriores (consulta consolidada) ---------------- */
+function getMesesDisponiveis(){
+  const map = new Map(); // label -> data mais recente de fechamento (pra ordenar)
+  DATA.companies.forEach(c => {
+    (c.historico || []).forEach(h => {
+      const atual = map.get(h.label);
+      if(!atual || h.closedAt > atual) map.set(h.label, h.closedAt);
+    });
+  });
+  return [...map.entries()].sort((a,b) => b[1].localeCompare(a[1])).map(([label]) => label);
+}
+
+function renderMesesAnterioresSelect(){
+  const meses = getMesesDisponiveis();
+  const sel = $('#mesAnteriorSelect');
+  if(meses.length === 0){
+    sel.innerHTML = `<option value="">Nenhum mês encerrado ainda</option>`;
+  } else {
+    sel.innerHTML = meses.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+  }
+}
+
+function renderMesAnteriorList(){
+  const label = $('#mesAnteriorSelect').value;
+  const q = $('#mesAnteriorSearch').value.trim().toLowerCase();
+  const box = $('#mesAnteriorList');
+  if(!label){
+    box.innerHTML = `<div class="empty">Nenhum mês encerrado ainda — use "Encerrar mês" na Apuração para começar a ter histórico aqui.</div>`;
+    $('#mesAnteriorCount').textContent = '';
+    return;
+  }
+  let itens = DATA.companies
+    .map(c => ({ c, h: (c.historico||[]).find(h => h.label === label) }))
+    .filter(({h}) => h);
+  if(q){
+    itens = itens.filter(({c}) => c.razaoSocial.toLowerCase().includes(q));
+  }
+  itens.sort((a,b) => a.c.razaoSocial.localeCompare(b.c.razaoSocial));
+
+  $('#mesAnteriorCount').textContent = itens.length + (itens.length===1 ? ' empresa encontrada' : ' empresas encontradas');
+
+  if(itens.length === 0){
+    box.innerHTML = `<div class="empty">Nenhuma empresa encontrada para ${escapeHtml(label)}.</div>`;
+    return;
+  }
+
+  box.innerHTML = itens.map(({c,h}) => `
+    <div class="client-row" data-id="${c.id}">
+      <div class="client-main">
+        <div class="avatar">${initials(c.razaoSocial)||'?'}</div>
+        <div style="min-width:0">
+          <div class="client-name">${escapeHtml(c.razaoSocial)}</div>
+          <div class="client-meta">${c.numero?('Nº '+c.numero+' · '):''}${c.municipio||''}${c.uf?'/'+c.uf:''}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex:none">
+        <span class="status-pill ${statusClass(h.status)}">${statusLabel(h.status)}</span>
+        <button class="btn btn-outline btn-sm" data-vermes="${c.id}">Ver</button>
+      </div>
+    </div>`).join('');
+
+  $$('#mesAnteriorList [data-vermes]').forEach(btn => btn.addEventListener('click', () => {
+    const { c, h } = itens.find(({c}) => c.id === btn.dataset.vermes);
+    openHistoricoDetalhe(c, h);
+  }));
+}
+
+$('#btnHistoricoMeses').addEventListener('click', () => {
+  closeModal('#modalApuracao');
+  renderMesesAnterioresSelect();
+  $('#mesAnteriorSearch').value = '';
+  renderMesAnteriorList();
+  openModal('#modalMesesAnteriores');
+});
+$('#mesAnteriorSelect').addEventListener('change', renderMesAnteriorList);
+$('#mesAnteriorSearch').addEventListener('input', debounce(renderMesAnteriorList, 150));
+
+function openHistoricoDetalhe(c, h){
+  $('#histDetTitulo').textContent = c.razaoSocial + ' — ' + h.label;
+  $('#histDetData').textContent = 'Encerrado em ' + fmtDate(h.closedAt.slice(0,10));
+  const d = h.documentos || {};
+  const imp = h.impostos || {};
+  const impV = h.impostosValores || {};
+  const impG = h.impostosGuias || {};
+  const dec = h.declaracao || {};
+  const impFields = getImpostosFieldsForCompany(c);
+  const guiaHistBadge = (key) => {
+    const g = impG[key];
+    if(!g) return '';
+    return `<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span class="small-muted" style="font-size:.7rem;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(g.filename)}">${escapeHtml(g.filename)}</span>
+      <button class="btn btn-outline btn-sm" data-verguiahist="${key}" style="padding:3px 8px;font-size:.7rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Ver</button>
+      <button class="btn btn-outline btn-sm" data-baixarguiahist="${key}" style="padding:3px 8px;font-size:.7rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> Baixar</button>
+    </div>`;
+  };
+  const impRows = impFields.map(([k,label,,def]) => `
+    <div class="client-row" style="cursor:default;align-items:flex-start;flex-wrap:wrap;gap:10px">
+      <div style="min-width:140px;font-weight:700;font-size:.85rem;padding-top:2px">${escapeHtml(label)}</div>
+      <div style="flex:1;min-width:160px">${docFieldWithValue('', imp[k]||def, impV[k])}</div>
+      <div>${guiaHistBadge(k)}</div>
+    </div>`).join('');
+  $('#histDetBody').innerHTML = `
+    <div class="section-title">Declaração</div>
+    <div class="row3">${DECLARACAO_FIELDS.map(([k,label,,def])=>docField(label, dec[k]||def)).join('')}</div>
+    <div class="section-title">Apuração</div>
+    <div class="row4">${DOC_FIELDS.slice(0,4).map(([k,label,,def])=>docField(label, d[k]||def)).join('')}</div>
+    <div class="row4" style="margin-top:10px">${DOC_FIELDS.slice(4,8).map(([k,label,,def])=>docField(label, d[k]||def)).join('')}</div>
+    <div class="section-title">Impostos</div>
+    ${impRows}
+    ${h.observacoesApuracao ? `<div class="section-title">Observações</div><div style="background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:.85rem;line-height:1.5;white-space:pre-wrap">${escapeHtml(h.observacoesApuracao)}</div>` : ''}
+  `;
+  $$('#histDetBody [data-verguiahist]').forEach(btn => btn.addEventListener('click', () => {
+    verGuia(impG[btn.dataset.verguiahist]);
+  }));
+  $$('#histDetBody [data-baixarguiahist]').forEach(btn => btn.addEventListener('click', () => {
+    const g = impG[btn.dataset.baixarguiahist];
+    if(!g) return;
+    const a = document.createElement('a');
+    a.href = g.dataUrl;
+    a.download = g.filename || 'guia.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }));
+  openModal('#modalHistoricoDetalhe');
+}
+
+function renderDeclaracaoSection(c, editMode){
+  const d = c.declaracao || {};
+  const box = $('#declaracaoSection');
+  if(!editMode){
+    box.innerHTML = `
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Declaração <button class="btn-icon" id="btnPadraoDeclaracao" title="Definir padrão do mês" style="width:26px;height:26px;background:var(--bg);color:var(--navy-700);border:1px solid var(--line);border-radius:7px;font-size:.8rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button></span>
+      </div>
+      <div class="row3">${DECLARACAO_FIELDS.map(([k,label,,def])=>docField(label, d[k]||getFieldDefault(c,'declaracaoPadrao',k,def))).join('')}</div>
+    `;
+    $('#btnPadraoDeclaracao').addEventListener('click', () => openPadraoModal(c, DECLARACAO_FIELDS, 'declaracaoPadrao', 'Padrão de Declaração', () => renderDeclaracaoSection(c, false)));
+  } else {
+    const selectHtml = (k,label,options,def) => {
+      const eff = d[k] || getFieldDefault(c,'declaracaoPadrao',k,def);
+      return `
+      <div class="field">
+        <label>${label}</label>
+        <select data-deckey="${k}">
+          ${options.map(([v,l]) => `<option value="${v}" ${eff===v?'selected':''}>${l}</option>`).join('')}
+        </select>
+      </div>`;
+    };
+    box.innerHTML = `
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Declaração <button class="btn-icon" id="btnPadraoDeclaracao" title="Definir padrão do mês" style="width:26px;height:26px;background:var(--bg);color:var(--navy-700);border:1px solid var(--line);border-radius:7px;font-size:.8rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button></span>
+      </div>
+      <div class="row3">${DECLARACAO_FIELDS.map(([k,label,opts,def])=>selectHtml(k,label,opts,def)).join('')}</div>
+    `;
+    $('#btnPadraoDeclaracao').addEventListener('click', () => openPadraoModal(c, DECLARACAO_FIELDS, 'declaracaoPadrao', 'Padrão de Declaração', () => renderDeclaracaoSection(c, false)));
+    colorizeSelectsIn(box);
+    $$('#declaracaoSection select[data-deckey]').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const liveDoc = { ...(c.documentos||{}) };
+        $$('#docsSection select[data-dockey]').forEach(s => { liveDoc[s.dataset.dockey] = s.value; });
+        const liveDec = { ...(c.declaracao||{}) };
+        $$('#declaracaoSection select[data-deckey]').forEach(s => { liveDec[s.dataset.deckey] = s.value; });
+        updateDocsProgressUI(docsProgressPercent(liveDoc, null, liveDec));
+      });
+    });
+  }
+}
+
+function guiaBadgeHtml(c, key){
+  const g = (c.impostosGuias || {})[key];
+  if(!g) return '';
+  return `<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+    <span class="small-muted" style="font-size:.7rem;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(g.filename)}">${escapeHtml(g.filename)}</span>
+    <button class="btn btn-outline btn-sm" data-verguia="${key}" style="padding:3px 8px;font-size:.7rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg> Ver</button>
+    <button class="btn btn-outline btn-sm" data-baixarguia="${key}" style="padding:3px 8px;font-size:.7rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> Baixar</button>
+    <button class="btn btn-danger btn-sm" data-removerguia="${key}" style="padding:3px 8px;font-size:.7rem">Remover</button>
+  </div>`;
+}
+
+function renderImpostosSection(c, editMode){
+  const d = c.impostos || {};
+  const v = c.impostosValores || {};
+  const fields = getImpostosFieldsForCompany(c);
+  const box = $('#impostosSection');
+  if(!editMode){
+    const rows = fields.map(([k,label,,def]) => `
+      <div class="client-row" style="cursor:default;align-items:flex-start;flex-wrap:wrap;gap:10px">
+        <div style="min-width:140px;font-weight:700;font-size:.85rem;padding-top:2px">${escapeHtml(label)}</div>
+        <div style="flex:1;min-width:160px">
+          ${docFieldWithValue('', d[k]||getFieldDefault(c,'impostosPadrao',k,def), v[k])}
+        </div>
+        <div>${guiaBadgeHtml(c,k)}</div>
+      </div>`).join('');
+    box.innerHTML = `
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Impostos <button class="btn-icon" id="btnPadraoImpostos" title="Definir padrão do mês" style="width:26px;height:26px;background:var(--bg);color:var(--navy-700);border:1px solid var(--line);border-radius:7px;font-size:.8rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button></span>
+      </div>
+      ${rows}
+    `;
+    $('#btnPadraoImpostos').addEventListener('click', () => openPadraoModal(c, fields, 'impostosPadrao', 'Padrão de Impostos', () => renderImpostosSection(c, false)));
+    bindGuiaButtons(box, c, () => renderImpostosSection(c, false));
+  } else {
+    const rowHtml = (k,label,options,def) => {
+      const eff = d[k] || getFieldDefault(c,'impostosPadrao',k,def);
+      const valorFormatado = v[k] != null ? digitsToMoneyStr(Math.round(v[k]*100).toString()) : '';
+      return `
+      <div class="client-row" style="cursor:default;align-items:flex-start;flex-wrap:wrap;gap:10px;padding:12px 4px">
+        <div style="min-width:130px;font-weight:700;font-size:.85rem;padding-top:9px">${escapeHtml(label)}</div>
+        <div style="min-width:170px">
+          <select data-impkey="${k}">
+            ${options.map(([v2,l]) => `<option value="${v2}" ${eff===v2?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>
+        <div style="position:relative;min-width:130px">
+          <span class="small-muted" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:.82rem">R$</span>
+          <input type="text" inputmode="numeric" data-impvalue="${k}" value="${valorFormatado}" placeholder="0,00" style="padding-left:32px">
+        </div>
+        <div>${guiaBadgeHtml(c,k)}</div>
+      </div>`;
+    };
+    const rows = fields.map(([k,label,opts,def]) => rowHtml(k,label,opts,def)).join('');
+    box.innerHTML = `
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Impostos <button class="btn-icon" id="btnPadraoImpostos" title="Definir padrão do mês" style="width:26px;height:26px;background:var(--bg);color:var(--navy-700);border:1px solid var(--line);border-radius:7px;font-size:.8rem"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button></span>
+      </div>
+      <p class="small-muted" style="margin-top:-4px">Ao marcar um imposto como Concluído, você poderá anexar o PDF da guia.</p>
+      ${rows}
+    `;
+    $('#btnPadraoImpostos').addEventListener('click', () => openPadraoModal(c, fields, 'impostosPadrao', 'Padrão de Impostos', () => renderImpostosSection(c, false)));
+    $$('#impostosSection input[data-impvalue]').forEach(applyMoneyMask);
+    colorizeSelectsIn(box);
+    bindGuiaButtons(box, c, () => renderImpostosSection(c, true));
+  }
+}
+
+function bindGuiaButtons(box, c, onRemoved){
+  box.querySelectorAll('[data-verguia]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    verGuia((c.impostosGuias || {})[btn.dataset.verguia]);
+  }));
+  box.querySelectorAll('[data-baixarguia]').forEach(btn => btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    downloadGuia(c, btn.dataset.baixarguia);
+  }));
+  box.querySelectorAll('[data-removerguia]').forEach(btn => btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await removerGuia(c, btn.dataset.removerguia);
+    if(onRemoved) onRemoved();
+  }));
+}
+
+
+function openPerfil(id, startDocsEdit){
+  const c = DATA.companies.find(x => x.id === id);
+  if(!c) return;
+  currentProfileId = id;
+  $('#perfilNome').textContent = c.razaoSocial;
+  $('#perfilMeta').textContent = [c.municipio, c.uf].filter(Boolean).join('/') || '—';
+
+  $('#perfilBody').innerHTML = `
+    ${c.baixada ? `<div class="banner" style="background:#fde3e8;border-color:#f5c2ce;color:#9c2c46;margin-bottom:14px"><span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg></span><span><strong>Empresa baixada</strong>${c.dataBaixa?(' em '+fmtDate(c.dataBaixa.slice(0,10))):''}. Motivo: ${escapeHtml(c.motivoBaixa)||'—'}</span></div>` : ''}
+    <div class="section-title">Identificação</div>
+    <div class="row3">
+      <div><span class="small-muted">Nº (código interno)</span><br><strong>${escapeHtml(c.numero)||'—'}</strong></div>
+      ${copyableField('CNPJ / CPF', c.cnpj)}
+      ${copyableField('IE', c.ie)}
+    </div>
+    <div class="row3" style="margin-top:10px">
+      <div><span class="small-muted">Regime</span><br><strong>${escapeHtml(c.regime)||'—'}</strong></div>
+      <div><span class="small-muted">Atividade</span><br><strong>${escapeHtml(c.atividade)||'—'}</strong></div>
+      <div><span class="small-muted">Dificuldade</span><br><strong>${escapeHtml(c.dificuldade)||'—'}</strong></div>
+    </div>
+    <div class="section-title">Situação</div>
+    <div class="row2">
+      <div>
+        <span class="small-muted">Status</span><br>
+        <span class="status-pill ${statusClass(statusFromProgress(docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao)))}" id="statusPill">${statusLabel(statusFromProgress(docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao)))}</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;margin-left:8px;vertical-align:middle">
+          <span style="display:inline-block;width:100px;height:8px;background:var(--line);border-radius:4px;overflow:hidden">
+            <span id="docsProgressBar" style="display:block;height:100%;width:${docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao)}%;background:var(--green);transition:width .2s ease"></span>
+          </span>
+          <span id="docsProgressLabel" class="small-muted">${docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao)}%</span>
+        </span>
+      </div>
+      <div><span class="small-muted">Vencimento/Certificado</span><br><strong>${fmtDate(c.vencimento)}</strong></div>
+    </div>
+    <div class="section-title">Responsável pela empresa</div>
+    ${(() => {
+      const r = c.responsavelEmpresa || {};
+      const items = [
+        [`<div><span class="small-muted">Nome</span><br><strong>${escapeHtml(r.nome)||'—'}</strong></div>`, true]
+      ];
+      if((r.telefone||'').trim()) items.push([copyableField('Telefone', r.telefone), true]);
+      if((r.email||'').trim()) items.push([copyableField('E-mail', r.email), true]);
+      if((r.outros||'').trim()) items.push([copyableField('Outros', r.outros), true]);
+      const cells = items.map(i=>i[0]);
+      let out = '';
+      for(let i=0;i<cells.length;i+=2){
+        out += `<div class="row2" ${i>0?'style="margin-top:10px"':''}>${cells[i]}${cells[i+1]||''}</div>`;
+      }
+      return out;
+    })()}
+    ${(() => {
+      const s = c.senhas || {};
+      function compactBlock(fallbackTitle, obj){
+        obj = obj || {};
+        const hasNome = (obj.nome||'').trim();
+        const hasLogin = (obj.login||'').trim();
+        const hasSenha = (obj.senha||'').trim();
+        const hasLink = (obj.link||'').trim();
+        if(!hasNome && !hasLogin && !hasSenha && !hasLink) return '';
+        const title = hasNome ? obj.nome : fallbackTitle;
+        const titleHtml = hasLink
+          ? `<a href="${escapeHtml(obj.link)}" target="_blank" rel="noopener noreferrer" style="font-size:.78rem;font-weight:700;color:var(--navy-600);text-decoration:underline">${escapeHtml(title)}</a>`
+          : `<strong style="font-size:.78rem">${escapeHtml(title)}</strong>`;
+        let line = titleHtml;
+        if(hasLogin) line += `<br><span class="copy-field" data-copy="${escapeHtml(obj.login)}" data-label="Login" style="cursor:pointer;font-size:.76rem;color:var(--ink)">Login: ${escapeHtml(obj.login)} <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>`;
+        if(hasSenha) line += `<br><span class="copy-field" data-copy="${escapeHtml(obj.senha)}" data-label="Senha" style="cursor:pointer;font-size:.76rem;color:var(--ink)">Senha: ${escapeHtml(obj.senha)} <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>`;
+        return `<div style="min-width:150px">${line}</div>`;
+      }
+      const blocks = [compactBlock('Prefeitura', s.prefeitura), compactBlock('Sistema 1', s.sistema1), compactBlock('Sistema 2', s.sistema2)].filter(Boolean);
+      if(blocks.length === 0) return '';
+      return `<div style="margin-top:12px"><span class="small-muted">Senhas</span><div style="margin-top:6px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:16px 20px;line-height:1.8;display:flex;flex-wrap:wrap;gap:32px">${blocks.join('')}</div></div>`;
+    })()}
+    <div id="declaracaoSection" style="margin-top:16px"></div>
+    <div id="docsSection" style="margin-top:16px"></div>
+    <div id="impostosSection" style="margin-top:16px"></div>
+    <div class="section-title">Observações</div>
+    <div class="field">
+      <textarea id="obsApuracaoInput" rows="3" placeholder="Escreva aqui qualquer observação sobre a apuração desta empresa...">${escapeHtml(c.observacoesApuracao)}</textarea>
+    </div>
+  `;
+  renderDocsSection(c, !!startDocsEdit);
+  renderImpostosSection(c, !!startDocsEdit);
+  renderDeclaracaoSection(c, !!startDocsEdit);
+  $('#obsApuracaoInput').addEventListener('blur', async () => {
+    const val = $('#obsApuracaoInput').value.trim();
+    if(val === (c.observacoesApuracao||'')) return;
+    c.observacoesApuracao = val;
+    await saveData();
+    toast('Observações salvas.');
+  });
+  $$('#perfilBody .copy-field[data-copy]').forEach(el => {
+    el.addEventListener('click', () => copyValue(el.dataset.copy, el.dataset.label));
+  });
+  openModal('#modalPerfil');
+}
+
+$('#btnPrintPerfil').addEventListener('click', () => window.print());
+
+$('#btnVoltarPerfil').addEventListener('click', () => {
+  closeModal('#modalPerfil');
+  if(perfilReturnTo === 'apuracao'){
+    renderApuracao();
+    openModal('#modalApuracao');
+  } else if(perfilReturnTo === 'vencimentos'){
+    openModal('#modalVenc');
+  }
+  perfilReturnTo = null;
+});
+
+if($('#btnEditEmpresa')){
+  $('#btnEditEmpresa').addEventListener('click', () => {
+    const c = DATA.companies.find(x => x.id === currentProfileId);
+    if(!c) return;
+    fillForm(c);
+    $('#empresaModalTitle').textContent = 'Editar empresa';
+    closeModal('#modalPerfil');
+    openModal('#modalEmpresa');
+  });
+}
+
+if($('#btnDeleteEmpresa')){
+  $('#btnDeleteEmpresa').addEventListener('click', async () => {
+    if(!confirm('Excluir esta empresa do controle?')) return;
+    DATA.companies = DATA.companies.filter(c => c.id !== currentProfileId);
+    await saveData();
+    render();
+    closeModal('#modalPerfil');
+    toast('Empresa excluída.');
+  });
+}
+
+/* ---------------- vencimentos ---------------- */
+
+
+/* ---------------- excel export ---------------- */
+function exportExcel(){
+  if(DATA.companies.length === 0){ toast('Não há empresas para exportar.'); return; }
+  const rows = DATA.companies.slice().sort((a,b)=>a.razaoSocial.localeCompare(b.razaoSocial)).map(c => ({
+    'Nº': c.numero||'',
+    'Razão Social': c.razaoSocial,
+    'CNPJ': c.cnpj||'',
+    'IE': c.ie||'',
+    'Atividade': c.atividade||'',
+    'Município': c.municipio||'',
+    'UF': c.uf||'',
+    'Dificuldade': c.dificuldade||'',
+    'Regime': c.regime||'',
+    'Responsáveis': c.responsaveis||'',
+    'Status': statusLabel(c.status),
+    'Vencimento/Cert.': c.vencimento ? fmtDate(c.vencimento) : '',
+    'Baixada': c.baixada ? 'SIM' : 'NÃO',
+    'Motivo da baixa': c.motivoBaixa||'',
+    'Responsável — Nome': (c.responsavelEmpresa && c.responsavelEmpresa.nome) || '',
+    'Responsável — Telefone': (c.responsavelEmpresa && c.responsavelEmpresa.telefone) || '',
+    'Responsável — E-mail': (c.responsavelEmpresa && c.responsavelEmpresa.email) || '',
+    'Responsável — Outros': (c.responsavelEmpresa && c.responsavelEmpresa.outros) || '',
+    'Situação dos documentos': c.situacaoDocumentos||'',
+    'Prefeitura — Login': (c.senhas && c.senhas.prefeitura && c.senhas.prefeitura.login) || '',
+    'Prefeitura — Senha': (c.senhas && c.senhas.prefeitura && c.senhas.prefeitura.senha) || '',
+    'Sistema 1 — Nome': (c.senhas && c.senhas.sistema1 && c.senhas.sistema1.nome) || '',
+    'Sistema 1 — Login': (c.senhas && c.senhas.sistema1 && c.senhas.sistema1.login) || '',
+    'Sistema 1 — Senha': (c.senhas && c.senhas.sistema1 && c.senhas.sistema1.senha) || '',
+    'Sistema 2 — Nome': (c.senhas && c.senhas.sistema2 && c.senhas.sistema2.nome) || '',
+    'Sistema 2 — Login': (c.senhas && c.senhas.sistema2 && c.senhas.sistema2.login) || '',
+    'Sistema 2 — Senha': (c.senhas && c.senhas.sistema2 && c.senhas.sistema2.senha) || '',
+    'Observações (PDF)': c.observacoes||''
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Empresas');
+  XLSX.writeFile(wb, 'controle-empresas.xlsx');
+  toast('Excel gerado.');
+}
+
+
+/* ---------------- dark mode ---------------- */
+$('#btnDark').addEventListener('click', () => {
+  document.body.classList.toggle('dark');
+  $('#btnDark').innerHTML = document.body.classList.contains('dark') ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+});
+
+/* ---------------- backup ---------------- */
+/* ---------------- empresas baixadas ---------------- */
+function renderBaixadasList(){
+  const q = $('#baixadasSearch').value.trim().toLowerCase();
+  let list = DATA.companies.filter(c => c.baixada).sort((a,b)=>a.razaoSocial.localeCompare(b.razaoSocial));
+  if(q){
+    list = list.filter(c =>
+      c.razaoSocial.toLowerCase().includes(q) ||
+      (c.cnpj||'').includes(q) ||
+      (c.municipio||'').toLowerCase().includes(q)
+    );
+  }
+  const box = $('#baixadasList');
+  if(list.length === 0){
+    box.innerHTML = `<div class="empty">Nenhuma empresa baixada.</div>`;
+    return;
+  }
+  box.innerHTML = list.map(c => `
+    <div class="client-row" data-id="${c.id}" style="cursor:default">
+      <div class="client-main">
+        <div class="avatar">${initials(c.razaoSocial)||'?'}</div>
+        <div style="min-width:0">
+          <div class="client-name">${escapeHtml(c.razaoSocial)}</div>
+          <div class="client-meta">${c.numero?('Nº '+c.numero+' · '):''}${c.municipio||''}${c.uf?'/'+c.uf:''}${c.dataBaixa?(' · baixada em '+fmtDate(c.dataBaixa.slice(0,10))):''}</div>
+          ${c.motivoBaixa ? `<div class="small-muted" style="margin-top:2px">Motivo: ${escapeHtml(c.motivoBaixa)}</div>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex:none">
+        <button class="btn btn-outline btn-sm" data-verbaixada="${c.id}">Ver perfil</button>
+        <button class="btn btn-outline btn-sm" data-reativar="${c.id}">Reativar</button>
+      </div>
+    </div>`).join('');
+
+  $$('#baixadasList [data-verbaixada]').forEach(btn => btn.addEventListener('click', () => {
+    closeModal('#modalBaixadas');
+    openPerfil(btn.dataset.verbaixada);
+  }));
+  $$('#baixadasList [data-reativar]').forEach(btn => btn.addEventListener('click', async () => {
+    const c = DATA.companies.find(x => x.id === btn.dataset.reativar);
+    if(!c) return;
+    if(!confirm(`Reativar "${c.razaoSocial}"? Ela volta a aparecer na lista normal e na Apuração do Mês.`)) return;
+    c.baixada = false;
+    await saveData();
+    render();
+    renderBaixadasList();
+    toast('Empresa reativada.');
+  }));
+}
+/* ---------------- gerenciar impostos por regime ---------------- */
+const REGIME_LABEL = { 'SIMPLES NACIONAL':'Simples Nacional', 'LUCRO PRESUMIDO':'Lucro Presumido', 'LUCRO REAL':'Lucro Real' };
+const REGIME_ORDER = ['SIMPLES NACIONAL','LUCRO PRESUMIDO','LUCRO REAL'];
+
+function renderImpostosCustomList(){
+  const box = $('#impostosCustomList');
+  const list = DATA.impostosCustom || [];
+  if(list.length === 0){
+    box.innerHTML = `<div class="empty">Nenhum imposto adicional cadastrado ainda.</div>`;
+    return;
+  }
+  const itemRow = (f, idx) => `
+    <div class="client-row" style="cursor:default">
+      <div class="client-main">
+        <div class="avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg></div>
+        <div style="min-width:0"><div class="client-name">${escapeHtml(f.label)}</div></div>
+      </div>
+      <button class="btn btn-danger btn-sm" data-delimposto="${idx}">Remover</button>
+    </div>`;
+
+  let html = '';
+  REGIME_ORDER.forEach(regime => {
+    const itens = list.map((f,idx)=>({f,idx})).filter(({f}) => (f.regimes||[]).includes(regime));
+    if(itens.length === 0) return;
+    html += `<div class="section-title" style="margin-top:14px">${REGIME_LABEL[regime]}</div>`;
+    html += itens.map(({f,idx}) => itemRow(f, idx)).join('');
+  });
+  box.innerHTML = html || `<div class="empty">Nenhum imposto adicional cadastrado ainda.</div>`;
+
+  $$('#impostosCustomList [data-delimposto]').forEach(btn => btn.addEventListener('click', async () => {
+    const idx = parseInt(btn.dataset.delimposto);
+    const item = list[idx];
+    if(!confirm(`Remover o imposto "${item.label}"? Ele deixará de aparecer na Apuração das empresas do regime configurado.`)) return;
+    const removed = DATA.impostosCustom.splice(idx,1)[0];
+    const ok = await saveData();
+    if(!ok){
+      DATA.impostosCustom.splice(idx,0,removed); // desfaz se não salvou
+      toast('Não foi possível remover — tente novamente.');
+      return;
+    }
+    renderImpostosCustomList();
+    toast('Imposto removido.');
+  }));
+}
+
+$('#btnGerenciarImpostos').addEventListener('click', () => {
+  renderImpostosCustomList();
+  openModal('#modalGerenciarImpostos');
+});
+
+$('#btnAddImpostoCustom').addEventListener('click', async () => {
+  const nome = $('#novoImpostoNome').value.trim();
+  const regimes = $$('.novoImpostoRegime:checked').map(el => el.value);
+  if(!nome){ toast('Informe o nome do imposto.'); return; }
+  if(regimes.length === 0){ toast('Selecione ao menos um regime.'); return; }
+
+  const btn = $('#btnAddImpostoCustom');
+  btn.disabled = true;
+  const novoItem = {
+    key: 'custom_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    label: nome,
+    regimes
+  };
+  DATA.impostosCustom = DATA.impostosCustom || [];
+  DATA.impostosCustom.push(novoItem);
+
+  const ok = await saveData();
+  btn.disabled = false;
+
+  if(!ok){
+    // desfaz a alteração local já que não foi salva — evita duplicar em nova tentativa
+    DATA.impostosCustom = DATA.impostosCustom.filter(f => f.key !== novoItem.key);
+    toast('Não foi possível adicionar o imposto — tente novamente.');
+    return;
+  }
+
+  $('#novoImpostoNome').value = '';
+  $$('.novoImpostoRegime').forEach(el => el.checked = false);
+  renderImpostosCustomList();
+  toast('Imposto adicionado — já aparece na Apuração das empresas desse regime.');
+});
+
+$('#btnBaixadas').addEventListener('click', () => {
+  renderBaixadasList();
+  openModal('#modalBaixadas');
+});
+$('#baixadasSearch').addEventListener('input', debounce(renderBaixadasList, 150));
+
+$('#btnBackup').addEventListener('click', () => { openModal('#modalBackup'); renderPastasSalvasList(); });
+/* ---------------- pasta de dados conectada ---------------- */
+// Observação: este app roda dentro de um iframe do Claude, que bloqueia a API
+// de acesso direto a pastas do sistema (showDirectoryPicker). Por isso, a
+// "conexão" aqui funciona pelo download nativo do navegador: ao conectar,
+// fazemos o primeiro download; a cada "Salvar agora" um novo arquivo é
+// baixado. Se o seu navegador estiver configurado para perguntar onde salvar
+// cada download, você escolhe a pasta manualmente uma vez e ele lembra.
+let folderConnected = false;
+let realDirHandle = null;
+
+/* ---------------- pastas salvas (IndexedDB) — vários atalhos, entre sessões ---------------- */
+const IDB_NAME = 'controleEmpresasFolders';
+const IDB_STORE = 'pastas';
+function openFolderDB(){
+  return new Promise((resolve, reject) => {
+    if(!window.indexedDB){ reject(new Error('IndexedDB indisponível')); return; }
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if(!db.objectStoreNames.contains(IDB_STORE)){
+        db.createObjectStore(IDB_STORE, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function salvarPastaAtalho(nome, handle){
+  try{
+    const db = await openFolderDB();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).add({ nome, handle, savedAt: new Date().toISOString() });
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  }catch(e){ console.error(e); return false; }
+}
+async function listarPastasSalvas(){
+  try{
+    const db = await openFolderDB();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  }catch(e){ console.error(e); return []; }
+}
+async function removerPastaSalva(id){
+  try{
+    const db = await openFolderDB();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(id);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => reject(tx.error);
+    });
+  }catch(e){ console.error(e); return false; }
+}
+async function jaEstaSalva(handle){
+  const salvas = await listarPastasSalvas();
+  for(const p of salvas){
+    try{ if(await p.handle.isSameEntry(handle)) return true; }catch(e){}
+  }
+  return false;
+}
+
+async function verificarESeVincularBackupNaPasta(handle){
+  let backupExistente = null;
+  try{
+    const fh = await handle.getFileHandle('backup-controle-empresas.json');
+    const file = await fh.getFile();
+    const texto = await file.text();
+    const parsed = JSON.parse(texto);
+    if(parsed && Array.isArray(parsed.companies)) backupExistente = parsed;
+  }catch(e){
+    if(e.name !== 'NotFoundError'){
+      console.error('Erro ao checar backup existente na pasta:', e);
+      toast('Não consegui checar se já havia um backup nessa pasta (veja o console). Seguindo normalmente.');
+    }
+  }
+  if(backupExistente){
+    const qtd = backupExistente.companies.length;
+    const querRestaurar = confirm(
+      `Encontrei um backup salvo nesta pasta, com ${qtd} empresa${qtd===1?'':'s'} cadastrada${qtd===1?'':'s'}.\n\n` +
+      `Clique OK para RESTAURAR esses dados agora (substitui o que está na tela).\n` +
+      `Clique Cancelar para manter os dados atuais e salvá-los por cima do backup da pasta.`
+    );
+    if(querRestaurar){
+      DATA = backupExistente;
+      await saveData();
+      render();
+      renderApuracao();
+      toast(`Dados restaurados da pasta — ${qtd} empresa${qtd===1?'':'s'} carregada${qtd===1?'':'s'}.`);
+      return true;
+    }
+  }
+  const ok = await writeBackupToRealFolder();
+  return ok;
+}
+
+async function conectarComHandleSalvo(handle, nome){
+  try{
+    let perm = await handle.queryPermission({ mode: 'readwrite' });
+    if(perm !== 'granted') perm = await handle.requestPermission({ mode: 'readwrite' });
+    if(perm !== 'granted'){ toast('Permissão negada para reconectar a essa pasta.'); return false; }
+  }catch(e){
+    console.error(e);
+    toast('Não foi possível reconectar. Tente conectar essa pasta de novo do zero.');
+    return false;
+  }
+  realDirHandle = handle;
+  const ok = await verificarESeVincularBackupNaPasta(handle);
+  folderConnected = !!ok;
+  updateFolderStatusUI();
+  if(ok) toast(`Reconectado à pasta "${nome||handle.name||'salva'}".`);
+  return ok;
+}
+
+function renderPastasSalvasList(){
+  const box = $('#pastasSalvasList');
+  if(!box) return;
+  listarPastasSalvas().then(lista => {
+    if(lista.length === 0){
+      box.innerHTML = `<div class="empty" style="padding:16px">Nenhuma pasta salva ainda. Conecte uma pasta acima e depois clique em "Salvar pasta atual como novo atalho".</div>`;
+      return;
+    }
+    box.innerHTML = lista.map(p => `
+      <div class="client-row" style="cursor:default">
+        <div class="client-main">
+          <div class="avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg></div>
+          <div style="min-width:0">
+            <div class="client-name">${escapeHtml(p.nome)}</div>
+            <div class="client-meta">salvo em ${fmtDate((p.savedAt||'').slice(0,10))}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex:none">
+          <button class="btn btn-outline btn-sm" data-reconectarpasta="${p.id}">Reconectar</button>
+          <button class="btn btn-danger btn-sm" data-removerpasta="${p.id}">Remover</button>
+        </div>
+      </div>`).join('');
+    $$('#pastasSalvasList [data-reconectarpasta]').forEach(btn => btn.addEventListener('click', async () => {
+      const item = lista.find(p => String(p.id) === btn.dataset.reconectarpasta);
+      if(item) await conectarComHandleSalvo(item.handle, item.nome);
+    }));
+    $$('#pastasSalvasList [data-removerpasta]').forEach(btn => btn.addEventListener('click', async () => {
+      if(!confirm('Remover esse atalho de pasta? Isso não apaga os arquivos, só o atalho salvo aqui.')) return;
+      await removerPastaSalva(parseInt(btn.dataset.removerpasta));
+      renderPastasSalvasList();
+      toast('Atalho removido.');
+    }));
+  });
+}
+
+async function checarBannerPastasSalvas(){
+  const lista = await listarPastasSalvas();
+  const banner = $('#bannerPastasSalvas');
+  if(!banner || lista.length === 0) return;
+  $('#bannerPastasSalvasText').textContent = lista.length === 1
+    ? `Você tem a pasta "${lista[0].nome}" salva de uma sessão anterior. Quer reconectar?`
+    : `Você tem ${lista.length} pastas salvas de sessões anteriores. Quer reconectar à mais recente ("${lista[lista.length-1].nome}")?`;
+  banner.style.display = 'flex';
+  $('#btnReconectarPastaBanner').onclick = async () => {
+    const alvo = lista[lista.length-1];
+    const ok = await conectarComHandleSalvo(alvo.handle, alvo.nome);
+    if(ok) banner.style.display = 'none';
+  };
+  $('#btnDispensarBannerPastas').onclick = () => { banner.style.display = 'none'; };
+}
+if(window.showDirectoryPicker) checarBannerPastasSalvas();
+
+function updateFolderStatusUI(){
+  const dotHeader = $('#syncDot');
+  const dotModal = $('#folderStatusDot');
+  const text = $('#folderStatusText');
+  const label = folderConnected
+    ? (realDirHandle ? ('Conectado (salvando automático): ' + (realDirHandle.name || 'pasta selecionada')) : 'Conectado — salvando via download do navegador')
+    : 'Nenhuma pasta conectada';
+  if(dotHeader) dotHeader.style.background = folderConnected ? '#2fae64' : '#e0526b';
+  if(dotModal) dotModal.style.background = folderConnected ? '#2fae64' : '#e0526b';
+  if(text) text.textContent = label;
+  const btnConnect = $('#btnConnectFolder');
+  const btnSave = $('#btnSaveToFolder');
+  const btnDisc = $('#btnDisconnectFolder');
+  if(btnConnect) btnConnect.style.display = folderConnected ? 'none' : 'inline-flex';
+  if(btnSave) btnSave.style.display = folderConnected ? 'inline-flex' : 'none';
+  if(btnDisc) btnDisc.style.display = folderConnected ? 'inline-flex' : 'none';
+  const btnAtalho = $('#btnSalvarPastaAtalho');
+  if(btnAtalho) btnAtalho.style.display = (folderConnected && realDirHandle) ? 'inline-flex' : 'none';
+}
+
+function downloadBackupFile(){
+  try{
+    const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'backup-controle-empresas.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    return true;
+  }catch(e){
+    console.error(e);
+    toast('Não foi possível salvar o arquivo.');
+    return false;
+  }
+}
+
+async function writeBackupToRealFolder(){
+  if(!realDirHandle) return false;
+  try{
+    const perm = await realDirHandle.requestPermission({ mode: 'readwrite' });
+    if(perm !== 'granted') return false;
+    const fh = await realDirHandle.getFileHandle('backup-controle-empresas.json', { create: true });
+    const w = await fh.createWritable();
+    await w.write(JSON.stringify(DATA, null, 2));
+    await w.close();
+    return true;
+  }catch(e){
+    console.error(e);
+    return false;
+  }
+}
+
+// Tenta abrir o seletor de pastas real do navegador. Retorna true se conseguiu
+// conectar (aí já salva o backup nela). Retorna false se não deu (usuário
+// cancelou, navegador não suporta, ou o ambiente bloqueia — como acontece
+// dentro do iframe do Claude).
+async function tentarConectarPastaReal(){
+  if(!window.showDirectoryPicker) return false;
+  try{
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    const perm = await handle.requestPermission({ mode: 'readwrite' });
+    if(perm !== 'granted'){ toast('Permissão negada para a pasta.'); return false; }
+    realDirHandle = handle;
+
+    const ok = await verificarESeVincularBackupNaPasta(handle);
+    if(ok){
+      folderConnected = true;
+      updateFolderStatusUI();
+      toast(`Pasta conectada: "${handle.name||'pasta selecionada'}".`);
+
+      const jaSalva = await jaEstaSalva(handle);
+      if(!jaSalva){
+        const nome = prompt('Quer salvar esse caminho como atalho, pra reconectar rápido da próxima vez que abrir o app? Digite um nome (ex: "Backup mensal") ou deixe em branco pra não salvar:', handle.name||'');
+        if(nome && nome.trim()){
+          await salvarPastaAtalho(nome.trim(), handle);
+          toast(`Atalho "${nome.trim()}" salvo.`);
+        }
+      }
+      return true;
+    }
+    return false;
+  }catch(e){
+    if(e.name === 'AbortError') return 'cancelled';
+    if(e.name === 'SecurityError'){
+      toast('Este ambiente (dentro do Claude) não permite escolher a pasta diretamente. Vou salvar por download — se seu navegador perguntar onde salvar, você escolhe a pasta lá.');
+    } else {
+      console.error(e);
+    }
+    return false;
+  }
+}
+
+$('#btnSync').addEventListener('click', async () => {
+  if(folderConnected && realDirHandle){
+    const ok = await writeBackupToRealFolder();
+    toast(ok ? 'Backup atualizado na pasta conectada.' : 'Não foi possível salvar na pasta — abrindo opções de backup.');
+    if(!ok) openModal('#modalBackup');
+    return;
+  }
+  const result = await tentarConectarPastaReal();
+  if(result === 'cancelled') return;
+  if(!result){
+    openModal('#modalBackup');
+  }
+});
+
+if($('#btnConnectFolder')){
+  $('#btnConnectFolder').addEventListener('click', async () => {
+    const result = await tentarConectarPastaReal();
+    if(result === 'cancelled' || result === true) return;
+    // ambiente não suporta pasta real: usa download como conexão simulada
+    const ok = downloadBackupFile();
+    if(ok){
+      folderConnected = true;
+      realDirHandle = null;
+      updateFolderStatusUI();
+      toast('Pasta conectada — escolha o local na janela de download e o backup foi salvo.');
+    }
+  });
+}
+if($('#btnSaveToFolder')){
+  $('#btnSaveToFolder').addEventListener('click', async () => {
+    if(realDirHandle){
+      const ok = await writeBackupToRealFolder();
+      toast(ok ? 'Backup salvo na pasta!' : 'Não foi possível salvar na pasta.');
+    } else {
+      const ok = downloadBackupFile();
+      if(ok) toast('Backup salvo novamente.');
+    }
+  });
+}
+if($('#btnDisconnectFolder')){
+  $('#btnDisconnectFolder').addEventListener('click', () => {
+    folderConnected = false;
+    realDirHandle = null;
+    updateFolderStatusUI();
+    toast('Pasta desconectada.');
+  });
+}
+if($('#btnSalvarPastaAtalho')){
+  $('#btnSalvarPastaAtalho').addEventListener('click', async () => {
+    if(!realDirHandle){ toast('Conecte uma pasta primeiro.'); return; }
+    const nome = prompt('Nome desse atalho de pasta (ex: "Backup mensal", "Pendrive"):', realDirHandle.name||'');
+    if(!nome || !nome.trim()) return;
+    const ok = await salvarPastaAtalho(nome.trim(), realDirHandle);
+    if(ok){ toast(`Atalho "${nome.trim()}" salvo.`); renderPastasSalvasList(); }
+    else toast('Não foi possível salvar o atalho.');
+  });
+}
+updateFolderStatusUI();
+
+$('#btnExportJson').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'backup-controle-empresas.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+$('#importJson').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!parsed.companies) throw new Error('formato inválido');
+      DATA = parsed;
+      await saveData();
+      render();
+      toast('Backup restaurado com sucesso.');
+      closeModal('#modalBackup');
+    }catch(err){ toast('Arquivo inválido.'); }
+  };
+  reader.readAsText(file);
+});
+$('#btnWipe').addEventListener('click', async () => {
+  if(!confirm('Isso apagará todas as empresas cadastradas. Confirma?')) return;
+  DATA = { companies: [] };
+  await saveData();
+  render();
+  closeModal('#modalBackup');
+  toast('Dados apagados.');
+});
+
+/* ---------------- init ---------------- */
+loadData();
+</script>
+</body>
+</html>

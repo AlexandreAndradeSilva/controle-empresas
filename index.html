@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Empresas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<!-- TELA DE LOGIN -->
+<div id="loginScreen">
+  <form class="login-card" id="loginForm">
+    <h1>Controle de Empresas</h1>
+    <p>Entre com seu e-mail e senha para acessar.</p>
+    <div class="field"><label>E-mail</label><input id="loginEmail" type="email" autocomplete="username" required></div>
+    <div class="field"><label>Senha</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
+    <button class="btn btn-primary btn-block" id="btnLogin" type="submit">Entrar</button>
+    <p id="loginError"></p>
+  </form>
+</div>
+
+<div class="wrap" id="appRoot" style="display:none">
+
+  <div class="header">
+    <h1>Controle de Empresas</h1>
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="btnBaixadas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg> Empresas Baixadas <span class="badge" id="baixadasCount" style="margin-left:4px">0</span></button>
+      <button class="btn btn-ghost" id="btnGerenciarImpostos"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg> Gerenciar Impostos</button>
+      <button class="btn-icon" id="btnDark" title="Alternar tema"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+      <button class="btn-icon" id="btnBackup" title="Backup / Restaurar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <button class="btn-icon" id="btnLogout" title="Sair"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
+    </div>
+  </div>
+
+  <div class="cards3">
+    <button class="action-card" id="openEmpresa">
+      <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18"/><path d="M2 22h20"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/></svg></span>
+      <h3>Cadastrar Empresa</h3>
+      <p>Adicionar uma nova empresa ao controle</p>
+    </button>
+    <button class="action-card" id="btnApuracao">
+      <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></span>
+      <h3>Apuração do Mês</h3>
+      <p>Em breve</p>
+    </button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Empresas cadastradas <span class="badge" id="clientCount">0</span></h2>
+        <p class="sub">Pesquise ou clique em uma empresa para abrir o perfil completo.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="homeRegimeFilter" style="border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Regime: todos</option>
+          <option value="SIMPLES NACIONAL">Simples Nacional</option>
+          <option value="LUCRO PRESUMIDO">Lucro Presumido</option>
+          <option value="LUCRO REAL">Lucro Real</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:var(--ink);cursor:pointer;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 12px">
+          <input type="checkbox" id="filtroCertVencendo" style="width:16px;height:16px;accent-color:var(--red)">
+          Certificados vencendo este mês
+        </label>
+      </div>
+    </div>
+    <div class="search">
+      <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+      <input id="searchInput" placeholder="Pesquisar por razão social, CNPJ, responsável ou município...">
+    </div>
+    <div id="clientList"></div>
+  </div>
+
+  <p class="footer-note">Controle de Empresas</p>
+</div>
+
+<!-- MODAL: Empresa (novo/editar) -->
+<div class="overlay" id="modalEmpresa">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1100px,92vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2 id="empresaModalTitle">Nova empresa</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <input type="hidden" id="empId">
+
+    <div class="section-title">Identificação</div>
+    <div class="field">
+      <label>CNPJ / CPF</label>
+      <input id="fCnpj" placeholder="Digite o CNPJ para preencher automático, ou CPF" maxlength="18">
+      <p class="small-muted" id="cnpjLookupStatus" style="margin-top:5px;min-height:16px"></p>
+    </div>
+    <div class="field"><label>Razão social *</label><input id="fRazao" placeholder="Ex.: EMPRESA MODELO LTDA"></div>
+    <div class="row2">
+      <div class="field"><label>Nº</label><input id="fNumero" placeholder="Código interno"></div>
+      <div class="field"><label>IE</label><input id="fIe" placeholder="Ou 'isenta'"></div>
+    </div>
+    <div class="field"><label>Atividade</label>
+      <select id="fAtividade">
+        <option value="">Selecione...</option>
+        <option value="SERVIÇOS">Serviços</option>
+        <option value="SERVIÇOS/COMÉRCIO">Serviços / Comércio</option>
+        <option value="COMÉRCIO">Comércio</option>
+        <option value="COMÉRCIO/INDUSTRIA">Comércio / Indústria</option>
+        <option value="INDUSTRIA">Indústria</option>
+        <option value="INDUSTRIA/SERVIÇOS">Indústria / Serviços</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Município</label><input id="fMunicipio"></div>
+      <div class="field"><label>UF</label>
+        <select id="fUf">
+          <option value="">Selecione...</option>
+          <option value="AC">AC — Acre</option>
+          <option value="AL">AL — Alagoas</option>
+          <option value="AP">AP — Amapá</option>
+          <option value="AM">AM — Amazonas</option>
+          <option value="BA">BA — Bahia</option>
+          <option value="CE">CE — Ceará</option>
+          <option value="DF">DF — Distrito Federal</option>
+          <option value="ES">ES — Espírito Santo</option>
+          <option value="GO">GO — Goiás</option>
+          <option value="MA">MA — Maranhão</option>
+          <option value="MT">MT — Mato Grosso</option>
+          <option value="MS">MS — Mato Grosso do Sul</option>
+          <option value="MG">MG — Minas Gerais</option>
+          <option value="PA">PA — Pará</option>
+          <option value="PB">PB — Paraíba</option>
+          <option value="PR">PR — Paraná</option>
+          <option value="PE">PE — Pernambuco</option>
+          <option value="PI">PI — Piauí</option>
+          <option value="RJ">RJ — Rio de Janeiro</option>
+          <option value="RN">RN — Rio Grande do Norte</option>
+          <option value="RS">RS — Rio Grande do Sul</option>
+          <option value="RO">RO — Rondônia</option>
+          <option value="RR">RR — Roraima</option>
+          <option value="SC">SC — Santa Catarina</option>
+          <option value="SP">SP — São Paulo</option>
+          <option value="SE">SE — Sergipe</option>
+          <option value="TO">TO — Tocantins</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Dificuldade</label>
+        <select id="fDificuldade">
+          <option value="FACIL">Fácil</option>
+          <option value="NORMAL">Normal</option>
+          <option value="DIFICIL">Difícil</option>
+          <option value="SEM MOVIMENTO">Sem movimento</option>
+        </select>
+      </div>
+      <div class="field"><label>Responsáveis</label><input id="fResponsaveis" placeholder="Nome / Nome"></div>
+    </div>
+    <div class="field"><label>Regime</label>
+      <select id="fRegime">
+        <option value="">Selecione...</option>
+        <option value="SIMPLES NACIONAL">Simples Nacional</option>
+        <option value="LUCRO PRESUMIDO">Lucro Presumido</option>
+        <option value="LUCRO REAL">Lucro Real</option>
+      </select>
+    </div>
+
+    <div class="section-title">Situação</div>
+    <div class="field"><label>Vencimento / Certificado</label><input id="fVencimento" type="date"></div>
+    <div class="checkbox-row"><input type="checkbox" id="fBaixada"><label for="fBaixada" style="margin:0">Empresa baixada</label></div>
+    <div class="field" id="motivoBaixaWrap" style="display:none">
+      <label>Motivo da baixa *</label>
+      <textarea id="fMotivoBaixa" rows="2" placeholder="Explique por que a empresa foi baixada"></textarea>
+    </div>
+
+    <div class="section-title">Responsável pela empresa</div>
+    <div class="row2">
+      <div class="field"><label>Nome</label><input id="fRespNome" placeholder="Nome do responsável"></div>
+      <div class="field"><label>Telefone</label><input id="fRespTelefone" placeholder="(00) 00000-0000"></div>
+    </div>
+    <div class="field"><label>E-mail</label><input id="fRespEmail" type="email" placeholder="email@empresa.com"></div>
+    <div class="field"><label>Outros</label><textarea id="fRespOutros" rows="2" placeholder="Outras informações de contato"></textarea></div>
+
+    <div class="section-title">Senhas</div>
+    <div class="small-muted" style="margin-bottom:6px;font-weight:700">Prefeitura</div>
+    <div class="field"><label>Link do site (opcional)</label><input id="fPrefLink" placeholder="https://..."></div>
+    <div class="row2">
+      <div class="field"><label>Login</label><input id="fPrefLogin" placeholder="Login"></div>
+      <div class="field"><label>Senha</label><input id="fPrefSenha" placeholder="Senha"></div>
+    </div>
+
+    <div class="small-muted" style="margin-bottom:6px;font-weight:700">Sistema 1</div>
+    <div class="field"><label>Nome do sistema</label><input id="fSis1Nome" placeholder="Ex.: SEBRAE"></div>
+    <div class="field"><label>Link do site (opcional)</label><input id="fSis1Link" placeholder="https://..."></div>
+    <div class="row2">
+      <div class="field"><label>Login</label><input id="fSis1Login" placeholder="Login"></div>
+      <div class="field"><label>Senha</label><input id="fSis1Senha" placeholder="Senha"></div>
+    </div>
+
+    <div class="small-muted" style="margin-bottom:6px;font-weight:700">Sistema 2</div>
+    <div class="field"><label>Nome do sistema</label><input id="fSis2Nome" placeholder="Ex.: Bling"></div>
+    <div class="field"><label>Link do site (opcional)</label><input id="fSis2Link" placeholder="https://..."></div>
+    <div class="row2">
+      <div class="field"><label>Login</label><input id="fSis2Login" placeholder="Login"></div>
+      <div class="field"><label>Senha</label><input id="fSis2Senha" placeholder="Senha"></div>
+    </div>
+
+    <div class="modal-actions" style="justify-content:space-between">
+      <button class="btn btn-danger btn-sm" id="btnDeleteEmpresaForm" style="display:none">Excluir empresa</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" data-close>Cancelar</button>
+        <button class="btn btn-primary" id="saveEmpresa">Salvar empresa</button>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Perfil -->
+<div class="overlay" id="modalPerfil">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1500px,95vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" id="btnVoltarPerfil" style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2 id="perfilNome">Empresa</h2><div style="display:flex;align-items:center;gap:4px"><button class="close-x" id="btnPrintPerfil" title="Imprimir"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div></div>
+    <p class="small-muted" id="perfilMeta"></p>
+    <div class="divider"></div>
+    <div id="perfilBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Apuração do Mês -->
+<div class="overlay" id="modalApuracao">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1600px,96vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head">
+      <h2>Apuração do Mês</h2>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn btn-outline btn-sm" id="btnHistoricoMeses"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Meses anteriores</button>
+        <button class="btn btn-outline btn-sm" id="btnEncerrarMes"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg> Encerrar mês</button>
+        <button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+      </div>
+    </div>
+
+    <div class="chips" id="apurChips">
+      <button class="chip total active" data-afilter="todas"><span class="num" id="aTotal">0</span><span class="lbl">TOTAL</span></button>
+      <button class="chip pendente" data-afilter="PENDENTE"><span class="num" id="aPendente">0</span><span class="lbl">PENDENTE</span></button>
+      <button class="chip andamento" data-afilter="ANDAMENTO"><span class="num" id="aAndamento">0</span><span class="lbl">ANDAMENTO</span></button>
+      <button class="chip concluida" data-afilter="CONCLUIDA"><span class="num" id="aConcluida">0</span><span class="lbl">CONCLUÍDA</span></button>
+      <button class="chip finalizadas" data-afilter="finalizadas"><span class="num" id="aFinalizadas">0</span><span class="lbl">IMPOSTO/GUIAS</span></button>
+    </div>
+
+    <div class="search" style="margin-top:14px">
+      <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+      <input id="apurSearch" placeholder="Pesquisar por razão social, CNPJ, responsável ou município...">
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px">
+      <p class="small-muted" style="margin:0" id="apurCount"></p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <select id="apurDificuldadeFilter" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Dificuldade: todas</option>
+          <option value="FACIL">Fácil</option>
+          <option value="NORMAL">Normal</option>
+          <option value="DIFICIL">Difícil</option>
+          <option value="SEM MOVIMENTO">Sem movimento</option>
+        </select>
+        <select id="apurRegimeFilter" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Regime: todos</option>
+          <option value="SIMPLES NACIONAL">Simples Nacional</option>
+          <option value="LUCRO PRESUMIDO">Lucro Presumido</option>
+          <option value="LUCRO REAL">Lucro Real</option>
+        </select>
+        <select id="apurDeclaracaoFilter" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Declaração: todas</option>
+          <option value="PENDENTE">Declaração: Pendente</option>
+          <option value="SOLICITADO">Declaração: Solicitado</option>
+          <option value="CLIENTE_ENVIOU">Declaração: Cliente enviou</option>
+          <option value="RELATORIO_PREFEITURA">Declaração: Relatório da Prefeitura</option>
+        </select>
+        <select id="apurImpostoTipoFilter" style="display:none;border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Tipo de imposto: todos</option>
+        </select>
+        <select id="apurOrdenarPor" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="manual" selected>Ordenar: Arrastar (manual)</option>
+          <option value="nome_az">Ordenar: Nome (A-Z)</option>
+          <option value="nome_za">Ordenar: Nome (Z-A)</option>
+          <option value="venc_prox">Ordenar: Vencimento (mais próximo)</option>
+          <option value="venc_dist">Ordenar: Vencimento (mais distante)</option>
+          <option value="progresso_menor">Ordenar: Progresso (menor primeiro)</option>
+          <option value="progresso_maior">Ordenar: Progresso (maior primeiro)</option>
+        </select>
+      </div>
+    </div>
+    <p class="small-muted" id="apurDragHint" style="margin-top:6px">Arraste as empresas pela lista abaixo para reordenar do seu jeito.</p>
+    <div id="apurList"></div>
+
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Padrão de Apuração -->
+<div class="overlay" id="modalPadrao">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:700px;margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2 id="padraoModalTitle">Padrão da Apuração</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Defina como cada campo já deve aparecer no início de todo mês para esta empresa. Deixe em "Usar padrão do sistema" para não fixar nada.</p>
+    <div class="divider"></div>
+    <div id="padraoFields"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Cancelar</button>
+      <button class="btn btn-primary" id="btnSalvarPadrao">Salvar padrão</button>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Gerenciar Impostos -->
+<div class="overlay" id="modalGerenciarImpostos">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:700px;margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Gerenciar Impostos</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">DIFAL, CRF, IRRF, REINF, ISSQN Prest. e ISSQN Toma. aparecem sempre, pra todas as empresas. Aqui você pode adicionar outros impostos que só aparecem para empresas de um regime específico (ou de todos).</p>
+    <div class="divider"></div>
+
+    <div class="section-title">Adicionar novo imposto</div>
+    <div class="field"><label>Nome do imposto</label><input id="novoImpostoNome" placeholder="Ex.: ICMS ST"></div>
+    <div style="margin-bottom:14px">
+      <div class="small-muted" style="font-weight:600;margin-bottom:8px">Aparece para o(s) regime(s)</div>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" value="SIMPLES NACIONAL" class="novoImpostoRegime" style="width:17px;height:17px;accent-color:var(--navy-700)"> Simples Nacional</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" value="LUCRO PRESUMIDO" class="novoImpostoRegime" style="width:17px;height:17px;accent-color:var(--navy-700)"> Lucro Presumido</label>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:400;padding:8px 0"><input type="checkbox" value="LUCRO REAL" class="novoImpostoRegime" style="width:17px;height:17px;accent-color:var(--navy-700)"> Lucro Real</label>
+    </div>
+    <button class="btn btn-primary btn-sm" id="btnAddImpostoCustom">+ Adicionar imposto</button>
+
+    <div class="divider"></div>
+    <div class="section-title">Impostos adicionados</div>
+    <div id="impostosCustomList"></div>
+
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Empresas Baixadas -->
+<div class="overlay" id="modalBaixadas">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1500px,95vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Empresas Baixadas</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Empresas arquivadas — não entram mais na apuração, mas todo o histórico e os dados continuam guardados aqui.</p>
+    <div class="search" style="margin-top:12px">
+      <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
+      <input id="baixadasSearch" placeholder="Pesquisar por razão social, CNPJ ou município...">
+    </div>
+    <div class="divider"></div>
+    <div id="baixadasList"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Meses Anteriores (consulta consolidada) -->
+<div class="overlay" id="modalMesesAnteriores">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1500px,95vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Meses anteriores</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Consulte rapidamente como ficou a apuração de qualquer empresa em meses já encerrados.</p>
+    <div class="divider"></div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <select id="mesAnteriorSelect" style="border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:.88rem;font-family:inherit;background:var(--bg);color:var(--ink);min-width:220px"></select>
+      <div class="search" style="flex:1;min-width:220px;margin-top:0">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="mesAnteriorSearch" placeholder="Pesquisar por razão social...">
+      </div>
+    </div>
+    <p class="small-muted" style="margin-top:10px" id="mesAnteriorCount"></p>
+    <div id="mesAnteriorList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Ver Guia (PDF embutido) -->
+<div class="overlay" id="modalVerGuia">
+  <div class="modal modal-fullscreen" style="overflow-y:hidden;padding:0;display:flex;flex-direction:column">
+    <div class="modal-head" style="padding:14px 20px;margin:0;flex:none">
+      <h2 id="verGuiaTitulo" style="font-size:.95rem">Guia</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-outline btn-sm" id="btnBaixarGuiaAberta"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> Baixar</button>
+        <button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
+      </div>
+    </div>
+    <iframe id="verGuiaFrame" style="flex:1;border:none;width:100%;background:#525659"></iframe>
+  </div>
+</div>
+
+<!-- MODAL: Histórico de um mês -->
+<div class="overlay" id="modalHistoricoDetalhe">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:700px;margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2 id="histDetTitulo">Histórico</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted" id="histDetData"></p>
+    <div class="divider"></div>
+    <div id="histDetBody"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Backup -->
+<div class="overlay" id="modalBackup">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:700px;margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Backup e restauração</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+
+    <p class="small-muted">Seus dados já ficam salvos automaticamente no banco de dados a cada alteração. Use esta tela apenas para exportar um arquivo avulso (guardar em outro lugar) ou restaurar um backup antigo.</p>
+    <div class="modal-actions" style="justify-content:flex-start;margin-top:10px">
+      <button class="btn btn-outline btn-sm" id="btnExportJson"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> Exportar backup (.json)</button>
+      <label class="btn btn-outline btn-sm" style="cursor:pointer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M5 3h14"/></svg> Importar backup<input type="file" id="importJson" accept="application/json" style="display:none"></label>
+    </div>
+    <div class="divider"></div>
+    <button class="btn btn-danger btn-sm" id="btnWipe">Apagar todos os dados</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="guiaFileInput" accept="application/pdf" style="display:none">
+
+<script>
+  // Preenchido no deploy (ou editado manualmente) com as credenciais públicas do seu projeto Supabase.
+  // A anon key é segura para expor no client: quem protege os dados é a Row Level Security (RLS) do banco.
+  window.SUPABASE_CONFIG = {
+    url: 'https://SEU-PROJETO.supabase.co',
+    anonKey: 'SUA_ANON_KEY_PUBLICA'
+  };
+</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
