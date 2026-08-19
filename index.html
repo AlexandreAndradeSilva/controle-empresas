@@ -16,14 +16,113 @@
 
 <!-- TELA DE LOGIN -->
 <div id="loginScreen">
-  <form class="login-card" id="loginForm">
-    <h1>Controle de Empresas</h1>
-    <p>Entre com seu e-mail e senha para acessar.</p>
-    <div class="field"><label>E-mail</label><input id="loginEmail" type="email" autocomplete="username" required></div>
-    <div class="field"><label>Senha</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
-    <button class="btn btn-primary btn-block" id="btnLogin" type="submit">Entrar</button>
-    <p id="loginError"></p>
-  </form>
+  <div class="auth-shell">
+
+    <aside class="auth-aside">
+      <div class="auth-brand">
+        <span class="auth-brand-mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" aria-hidden="true"><path d="M6 22V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v18"/><path d="M2 22h20"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/></svg></span>
+        <span class="auth-brand-name">Controle de Empresas</span>
+      </div>
+
+      <div class="auth-pitch">
+        <h1>A rotina fiscal do escritório, sob controle.</h1>
+        <p>Cadastro, apuração e entregas de cada empresa organizados por competência — em um único painel.</p>
+      </div>
+
+      <ul class="auth-features">
+        <li>
+          <span class="auth-feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg></span>
+          <span class="auth-feature-text"><strong>Cadastro de empresas</strong>CNPJ, regime, certificado digital e responsáveis em uma ficha só.</span>
+        </li>
+        <li>
+          <span class="auth-feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg></span>
+          <span class="auth-feature-text"><strong>Apuração mensal</strong>Impostos do mês por empresa, com o que já foi conferido e o que falta.</span>
+        </li>
+        <li>
+          <span class="auth-feature-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg></span>
+          <span class="auth-feature-text"><strong>Guias e declarações</strong>Status de emissão e entrega, com histórico das competências anteriores.</span>
+        </li>
+      </ul>
+
+      <p class="auth-aside-foot">Acesso restrito aos usuários autorizados do escritório.</p>
+    </aside>
+
+    <section class="auth-main">
+      <div class="auth-main-inner">
+
+        <!-- O JS (js/auth.js -> ativaAba) alterna a classe "active" e o
+             atributo aria-selected nas duas abas; o CSS reconhece os dois. -->
+        <div class="auth-tabs" role="tablist" aria-label="Acesso ao sistema">
+          <button type="button" class="auth-tab active" id="tabLogin" role="tab" aria-selected="true" aria-controls="loginForm">Entrar</button>
+          <button type="button" class="auth-tab" id="tabSignup" role="tab" aria-selected="false" aria-controls="signupForm">Criar conta</button>
+        </div>
+
+        <form class="auth-form" id="loginForm" role="tabpanel" aria-labelledby="loginFormTitle">
+          <div class="auth-form-head">
+            <h2 id="loginFormTitle">Entrar na sua conta</h2>
+            <p>Informe o e-mail e a senha cadastrados para acessar o sistema.</p>
+          </div>
+
+          <div class="field">
+            <label for="loginEmail">E-mail</label>
+            <input id="loginEmail" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="nome@escritorio.com.br" required>
+          </div>
+
+          <div class="field">
+            <label for="loginPassword">Senha</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha" required>
+          </div>
+
+          <p class="auth-error" id="loginError" role="alert"></p>
+
+          <button class="btn btn-primary btn-block" id="btnLogin" type="submit">Entrar</button>
+
+          <p class="auth-help">Esqueceu a senha? Solicite a redefinição ao administrador do sistema.</p>
+        </form>
+
+        <form class="auth-form" id="signupForm" role="tabpanel" aria-labelledby="signupFormTitle" style="display:none">
+          <div class="auth-form-head">
+            <h2 id="signupFormTitle">Criar sua conta</h2>
+            <p>O cadastro é restrito: só é possível criar uma conta com um código de convite.</p>
+          </div>
+
+          <div class="banner auth-invite-note">
+            <span class="auth-note-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" aria-hidden="true"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2"/><path d="M17 6l3 3"/></svg></span>
+            <span>Peça o código de convite ao administrador do escritório antes de continuar. Sem um código válido a conta não é criada.</span>
+          </div>
+
+          <div class="field">
+            <label for="signupEmail">E-mail</label>
+            <input id="signupEmail" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="nome@escritorio.com.br" required>
+          </div>
+
+          <div class="field">
+            <label for="signupPassword">Senha</label>
+            <input id="signupPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Crie uma senha" required>
+            <p class="auth-hint">Use no mínimo 8 caracteres.</p>
+          </div>
+
+          <div class="field">
+            <label for="signupPassword2">Confirmar senha</label>
+            <input id="signupPassword2" type="password" autocomplete="new-password" minlength="8" placeholder="Repita a senha" required>
+          </div>
+
+          <div class="field">
+            <label for="signupInvite">Código de convite</label>
+            <input id="signupInvite" type="text" class="auth-code-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Fornecido pelo administrador" required>
+          </div>
+
+          <p class="auth-error" id="signupError" role="alert"></p>
+
+          <button class="btn btn-primary btn-block" id="btnSignup" type="submit">Criar conta</button>
+
+          <p class="auth-help">Já tem acesso? Use a aba <strong>Entrar</strong>.</p>
+        </form>
+
+      </div>
+    </section>
+
+  </div>
 </div>
 
 <div class="wrap" id="appRoot" style="display:none">
@@ -35,6 +134,7 @@
       <button class="btn btn-ghost" id="btnGerenciarImpostos"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg> Gerenciar Impostos</button>
       <button class="btn-icon" id="btnDark" title="Alternar tema"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
       <button class="btn-icon" id="btnBackup" title="Backup / Restaurar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <button class="btn-icon" id="btnAlterarSenha" title="Alterar senha"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
       <button class="btn-icon" id="btnLogout" title="Sair"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
     </div>
   </div>
@@ -432,6 +532,29 @@
   </div>
 </div>
 
+<div class="overlay" id="modalSenha">
+  <div class="modal">
+    <div class="modal-head"><h2>Alterar senha</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <form id="formSenha">
+      <p class="small-muted">A nova senha passa a valer imediatamente. Sua sessão atual continua aberta.</p>
+      <div class="field">
+        <label for="novaSenha">Nova senha</label>
+        <input id="novaSenha" type="password" autocomplete="new-password" minlength="8" placeholder="Nova senha" required>
+        <p class="small-muted" style="margin-top:5px">Use no mínimo 8 caracteres.</p>
+      </div>
+      <div class="field">
+        <label for="novaSenha2">Confirmar nova senha</label>
+        <input id="novaSenha2" type="password" autocomplete="new-password" minlength="8" placeholder="Repita a nova senha" required>
+      </div>
+      <p id="senhaError" role="alert"></p>
+      <div class="modal-actions">
+        <button class="btn btn-outline btn-sm" type="button" data-close>Cancelar</button>
+        <button class="btn btn-primary btn-sm" id="btnSalvarSenha" type="submit">Salvar senha</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <input type="file" id="guiaFileInput" accept="application/pdf" style="display:none">
 
@@ -439,8 +562,8 @@
   // Preenchido no deploy (ou editado manualmente) com as credenciais públicas do seu projeto Supabase.
   // A anon key é segura para expor no client: quem protege os dados é a Row Level Security (RLS) do banco.
   window.SUPABASE_CONFIG = {
-    url: 'https://SEU-PROJETO.supabase.co',
-    anonKey: 'SUA_ANON_KEY_PUBLICA'
+    url: 'https://qnxfintbewcybcqptrbt.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFueGZpbnRiZXdjeWJjcXB0cmJ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcwOTgzMDcsImV4cCI6MjEwMjY3NDMwN30.O1IEZG1w66oDeoH0lJZWpTAUuWnPCJd47hCjfQoTnic'
   };
 </script>
 <script type="module" src="js/main.js"></script>
