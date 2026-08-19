@@ -115,9 +115,222 @@ body.dark .section-title{color:#7fa8e8}
 .divider{height:1px;background:var(--line);margin:14px 0}
 
 /* ---------------- tela de login ---------------- */
-#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-#loginScreen .login-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);padding:28px;width:100%;max-width:360px}
-#loginScreen h1{font-size:1.1rem;margin:0 0 4px}
-#loginScreen p{margin:0 0 18px;color:var(--muted);font-size:.85rem}
-#loginError{color:var(--red);font-size:.8rem;min-height:16px;margin-top:8px}
+/* O JS mostra/oculta esta tela com style.display (none / vazio),
+   então o display:flex precisa vir daqui. */
+#loginScreen{
+  display:flex;align-items:center;justify-content:center;
+  padding:24px 16px;
+  /* desconta o padding-bottom:60px do body para não gerar scroll na tela de login */
+  min-height:calc(100vh - 60px);
+  min-height:calc(100dvh - 60px);
+  background:
+    radial-gradient(900px 480px at 10% -12%, rgba(43,84,148,.12), transparent 62%),
+    radial-gradient(700px 420px at 106% 110%, rgba(244,185,66,.14), transparent 60%),
+    var(--bg);
+}
+body.dark #loginScreen{
+  background:
+    radial-gradient(900px 480px at 10% -12%, rgba(43,84,148,.28), transparent 62%),
+    radial-gradient(700px 420px at 106% 110%, rgba(244,185,66,.08), transparent 60%),
+    var(--bg);
+}
+
+.auth-shell{
+  margin:auto;width:100%;max-width:940px;
+  display:grid;grid-template-columns:1fr;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:0 1px 2px rgba(15,26,43,.06), 0 24px 60px -30px rgba(15,26,43,.45);
+  overflow:hidden;
+}
+body.dark .auth-shell{box-shadow:0 1px 2px rgba(0,0,0,.4), 0 24px 60px -30px rgba(0,0,0,.8)}
+@media(min-width:880px){
+  .auth-shell{grid-template-columns:minmax(0,1.02fr) minmax(0,1fr)}
+}
+
+/* ----- painel navy (identidade) ----- */
+.auth-aside{
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:20px;
+  padding:22px 20px;
+  color:#fff;
+  background:linear-gradient(155deg,var(--navy-900),var(--navy-950));
+}
+.auth-aside::after{
+  content:"";position:absolute;right:-50px;top:-70px;width:230px;height:230px;border-radius:50%;
+  background:radial-gradient(circle,rgba(244,185,66,.18),transparent 70%);pointer-events:none;
+}
+@media(min-width:880px){ .auth-aside{padding:34px 30px;gap:26px} }
+
+.auth-brand{position:relative;z-index:1;display:flex;align-items:center;gap:10px}
+.auth-brand-mark{
+  flex:none;width:38px;height:38px;border-radius:11px;font-size:1.15rem;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--amber);background:rgba(244,185,66,.14);border:1px solid rgba(244,185,66,.34);
+}
+.auth-brand-name{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  font-weight:800;font-size:1rem;letter-spacing:-.01em;
+}
+
+.auth-pitch{position:relative;z-index:1}
+.auth-pitch h1{
+  margin:0 0 8px;font-size:1.5rem;line-height:1.24;font-weight:800;letter-spacing:-.015em;max-width:18ch;
+}
+.auth-pitch p{margin:0;color:#b8c6e0;font-size:.86rem;line-height:1.55;max-width:44ch}
+
+.auth-features{position:relative;z-index:1;list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.auth-features li{display:flex;align-items:flex-start;gap:11px}
+.auth-feature-icon{
+  flex:none;width:30px;height:30px;border-radius:9px;font-size:.95rem;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--amber);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+}
+.auth-feature-text{display:block;font-size:.8rem;line-height:1.45;color:#c3d0e6}
+.auth-feature-text strong{display:block;margin-bottom:2px;font-size:.84rem;font-weight:700;color:#fff}
+
+.auth-aside-foot{
+  position:relative;z-index:1;margin:auto 0 0;padding-top:4px;
+  font-size:.72rem;line-height:1.5;color:#8ea3c4;
+}
+
+/* ----- painel claro (formulários) ----- */
+.auth-main{
+  background:var(--card);
+  padding:24px 20px 26px;
+  display:flex;align-items:center;justify-content:center;
+}
+@media(min-width:880px){ .auth-main{padding:34px 34px 36px} }
+.auth-main-inner{width:100%;max-width:380px}
+
+/* ----- abas ----- */
+.auth-tabs{
+  display:grid;grid-template-columns:1fr 1fr;gap:4px;
+  margin-bottom:20px;padding:4px;
+  background:var(--bg);border:1px solid var(--line);border-radius:12px;
+}
+.auth-tab{
+  appearance:none;border:none;background:transparent;
+  font-family:inherit;font-size:.83rem;font-weight:700;color:var(--muted);
+  padding:9px 10px;border-radius:9px;cursor:pointer;
+  transition:background .15s ease, color .15s ease, box-shadow .15s ease;
+}
+.auth-tab:hover{color:var(--ink)}
+.auth-tab.active,
+.auth-tab[aria-selected="true"]{
+  background:var(--card);color:var(--ink);
+  box-shadow:0 1px 2px rgba(15,26,43,.12), inset 0 -2px 0 var(--amber);
+}
+body.dark .auth-tab.active,
+body.dark .auth-tab[aria-selected="true"]{
+  box-shadow:0 1px 2px rgba(0,0,0,.45), inset 0 -2px 0 var(--amber);
+}
+.auth-tab:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--navy-600)}
+.auth-tab.active:focus-visible,
+.auth-tab[aria-selected="true"]:focus-visible{
+  box-shadow:inset 0 -2px 0 var(--amber), 0 0 0 2px var(--bg), 0 0 0 4px var(--navy-600);
+}
+body.dark .auth-tab:focus-visible{box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--amber)}
+body.dark .auth-tab.active:focus-visible,
+body.dark .auth-tab[aria-selected="true"]:focus-visible{
+  box-shadow:inset 0 -2px 0 var(--amber), 0 0 0 2px var(--bg), 0 0 0 4px var(--amber);
+}
+
+/* ----- formulários ----- */
+#loginScreen .auth-form-head{margin-bottom:16px}
+#loginScreen .auth-form-head h2{margin:0 0 4px;font-size:1.06rem;font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+#loginScreen .auth-form-head p{margin:0;font-size:.8rem;line-height:1.5;color:var(--muted)}
+
+#loginScreen .auth-invite-note{
+  margin:0 0 16px;padding:10px 12px;border-radius:11px;font-size:.78rem;line-height:1.45;
+}
+#loginScreen .auth-note-icon{flex:none;display:inline-flex;margin-top:1px;font-size:1rem;color:var(--amber-dark)}
+body.dark #loginScreen .auth-note-icon{color:var(--amber)}
+
+#loginScreen .field{margin-bottom:14px}
+#loginScreen .field label{font-size:.76rem;font-weight:600;color:var(--muted);margin-bottom:6px}
+#loginScreen .field input{
+  padding:11px 12px;font-size:.9rem;border-radius:10px;
+  transition:border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+#loginScreen .field input::placeholder{color:var(--muted);opacity:.62}
+#loginScreen .field input:focus{
+  border-color:var(--navy-600);background:var(--card);
+  box-shadow:0 0 0 3px rgba(43,84,148,.20);
+}
+body.dark #loginScreen .field input:focus{
+  border-color:var(--amber);
+  box-shadow:0 0 0 3px rgba(244,185,66,.22);
+}
+#loginScreen .field input:-webkit-autofill{
+  -webkit-text-fill-color:var(--ink);
+  -webkit-box-shadow:0 0 0 40px var(--bg) inset;
+  caret-color:var(--ink);
+}
+#loginScreen .field input:-webkit-autofill:focus{
+  -webkit-box-shadow:0 0 0 40px var(--card) inset, 0 0 0 3px rgba(43,84,148,.20);
+}
+body.dark #loginScreen .field input:-webkit-autofill:focus{
+  -webkit-box-shadow:0 0 0 40px var(--card) inset, 0 0 0 3px rgba(244,185,66,.22);
+}
+#loginScreen .auth-code-input{letter-spacing:.06em}
+#loginScreen .auth-hint{margin:6px 0 0;font-size:.72rem;line-height:1.4;color:var(--muted)}
+
+/* mensagens de erro: não ocupam espaço enquanto vazias */
+#loginError,#signupError,#senhaError{
+  display:none;margin:0 0 12px;padding:9px 11px;
+  font-size:.78rem;line-height:1.45;font-weight:600;
+  color:#c22e4c;background:rgba(224,82,107,.10);
+  border:1px solid rgba(224,82,107,.28);border-left:3px solid var(--red);border-radius:9px;
+}
+#loginError:not(:empty),#signupError:not(:empty),#senhaError:not(:empty){display:block}
+body.dark #loginError,body.dark #signupError,body.dark #senhaError{
+  color:#ff8fa3;background:rgba(224,82,107,.14);
+  border-color:rgba(224,82,107,.38);border-left-color:var(--red);
+}
+
+
+/* variante de sucesso: reaproveita a mesma caixa, em verde */
+#loginError.is-ok,#signupError.is-ok,#senhaError.is-ok{
+  color:#1b7a45;background:rgba(47,174,100,.10);
+  border-color:rgba(47,174,100,.30);border-left-color:var(--green);
+}
+body.dark #loginError.is-ok,body.dark #signupError.is-ok,body.dark #senhaError.is-ok{
+  color:#6fe0a0;background:rgba(47,174,100,.14);border-color:rgba(47,174,100,.40);
+}
+
+/* ----- botões ----- */
 .btn-block{width:100%;justify-content:center;margin-top:6px}
+#loginScreen .btn-block{margin-top:2px;padding:12px 16px;font-size:.88rem;border-radius:10px}
+#loginScreen .btn-primary{box-shadow:0 8px 18px -10px rgba(201,138,29,.9)}
+#loginScreen .btn-primary:hover{filter:brightness(1.05)}
+#loginScreen .btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--card), 0 0 0 4px var(--navy-600)}
+body.dark #loginScreen .btn:focus-visible{box-shadow:0 0 0 2px var(--card), 0 0 0 4px var(--amber)}
+#loginScreen .btn:disabled{opacity:.55;cursor:not-allowed;filter:none;box-shadow:none;transform:none}
+#loginScreen .btn:disabled:active{transform:none}
+
+#loginScreen .auth-help{margin:14px 0 0;font-size:.75rem;line-height:1.5;color:var(--muted);text-align:center}
+#loginScreen .auth-help strong{color:var(--ink);font-weight:700}
+
+/* ----- responsivo: o painel navy vira cabeçalho compacto ----- */
+@media(max-width:879px){
+  .auth-aside{gap:12px;padding:20px 20px 22px}
+  .auth-features,.auth-aside-foot{display:none}
+  .auth-pitch h1{font-size:1.14rem;max-width:none}
+  .auth-pitch p{font-size:.8rem}
+  .auth-brand-mark{width:34px;height:34px;font-size:1.05rem}
+}
+@media(max-width:400px){
+  #loginScreen{padding:14px 12px}
+  .auth-aside{padding:18px 16px}
+  .auth-main{padding:20px 16px 22px}
+  .auth-tabs{margin-bottom:16px}
+  .auth-tab{font-size:.8rem;padding:9px 6px}
+  .auth-pitch h1{font-size:1.08rem}
+}
+@media(prefers-reduced-motion:reduce){
+  #loginScreen *,#loginScreen *::before,#loginScreen *::after{
+    transition-duration:.01ms!important;animation-duration:.01ms!important;
+  }
+}

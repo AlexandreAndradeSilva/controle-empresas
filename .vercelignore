@@ -1,0 +1,9 @@
+# Não faz parte do site: schema do banco, rodado à mão no SQL Editor do Supabase.
+supabase/
+
+# Artefato monolítico original, mantido no repo apenas como referência histórica.
+controle-empresas_3.html
+
+# Documentação e configuração local.
+README.md
+.claude/

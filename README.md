@@ -4,12 +4,38 @@ Sistema web (frontend + Supabase como backend) para controle de empresas contáb
 
 ## Status atual
 
-- [ ] Projeto criado no Supabase
-- [ ] `supabase/migration.sql` executado no SQL Editor do projeto
-- [ ] Usuário de login criado em Authentication → Users
-- [ ] `window.SUPABASE_CONFIG` no final do `index.html` preenchido com a URL e a anon key reais
+- [x] Projeto criado no Supabase
+- [x] `supabase/migration.sql` executado no SQL Editor do projeto
+- [x] Usuário de login criado em Authentication → Users
+- [x] `window.SUPABASE_CONFIG` no final do `index.html` preenchido com a URL e a anon key reais
+- [ ] "Confirm email" desligado em Authentication → Providers → Email (necessário para o cadastro por convite entrar direto)
 
-**Enquanto esses itens não estiverem marcados, o app não funciona** — `index.html` ainda está com os valores de exemplo `SEU-PROJETO.supabase.co` / `SUA_ANON_KEY_PUBLICA` (é só abrir o arquivo e procurar por `SUPABASE_CONFIG` pra confirmar). Siga "Configurar o backend" e "Configurar o frontend" abaixo nessa ordem; depois de configurar, marque os itens acima (e faça commit) para quem futuramente clonar o repositório já saber que essa parte está pronta.
+A `anonKey` versionada aqui é pública por natureza — quem protege os dados é a
+Row Level Security do banco, não o sigilo dessa chave. Trocar de projeto Supabase
+exige editar o bloco `SUPABASE_CONFIG` no fim do `index.html`.
+
+## Acesso: login e cadastro por convite
+
+Não há cadastro aberto. Para alguém criar conta é preciso um **código de convite de
+uso único**, emitido pelo administrador no SQL Editor:
+
+```sql
+insert into public.invites (code, email)
+values (upper(left(replace(gen_random_uuid()::text,'-',''),12)), 'pessoa@escritorio.com.br')
+returning code;
+```
+
+A validação real acontece no banco, num trigger `before insert on auth.users` — não
+no JavaScript. Isso é proposital: a anon key é pública, então qualquer checagem feita
+só no cliente seria contornável pelo console do navegador. A tela chama a função
+`invite_disponivel()` apenas para exibir uma mensagem de erro legível antes de tentar.
+
+Cada usuário enxerga somente as próprias empresas (Row Level Security por `owner_id`).
+
+**Consequência a conhecer:** o trigger barra qualquer inserção em `auth.users` sem
+código, inclusive o botão "Add user" do painel do Supabase. Para criar alguém à mão,
+emita um convite ou desligue o trigger temporariamente — o procedimento está
+comentado no fim de `supabase/migration.sql`.
 
 ## Estrutura
 
