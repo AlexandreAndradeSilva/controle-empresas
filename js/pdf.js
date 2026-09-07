@@ -1,14 +1,9 @@
-import { statusLabel, fmtDate, fmtMoney } from './utils.js';
-import { DOC_FIELDS, DECLARACAO_FIELDS, getImpostosFieldsForCompany } from './fields.js';
+import { statusLabel, fmtDate, fmtMoney, formatTempo, monthLabelPT, sanitizeFileName } from './utils.js';
+import { DOC_FIELDS, getImpostosFieldsForCompany, getDeclaracaoFieldsForCompany,
+         getObrigacoesFieldsForCompany, REINF_TIPOS, isReinfLabel } from './fields.js';
+import { getResponsaveisArray, getSistemasArray } from './companies.js';
 
-export function monthLabelPT(date){
-  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  return meses[date.getMonth()] + '/' + date.getFullYear();
-}
-
-export function sanitizeFileName(name){
-  return (name||'empresa').replace(/[\\/:*?"<>|]/g,'-').trim().slice(0,80);
-}
+export { monthLabelPT, sanitizeFileName };
 
 export function buildCompanyPdfBlob(c, snap, label){
   const { jsPDF } = window.jspdf;
@@ -50,29 +45,46 @@ export function buildCompanyPdfBlob(c, snap, label){
   line('Vencimento/Certificado', fmtDate(c.vencimento));
   y += 3;
 
-  const resp = c.responsavelEmpresa || {};
-  if(resp.nome || resp.telefone || resp.email || resp.outros){
+  const listaResp = getResponsaveisArray(c).filter(r => r.nome || r.telefone || r.email || r.outros);
+  if(listaResp.length){
     sectionTitle('Responsável pela empresa');
-    if(resp.nome) line('Nome', resp.nome);
-    if(resp.telefone) line('Telefone', resp.telefone);
-    if(resp.email) line('E-mail', resp.email);
-    if(resp.outros) line('Outros', resp.outros);
+    listaResp.forEach((resp, idx) => {
+      if(idx > 0) y += 2;
+      if(resp.nome) line(listaResp.length>1?`Nome (${idx+1})`:'Nome', resp.nome);
+      if(resp.telefone) line('Telefone', resp.telefone);
+      if(resp.email) line('E-mail', resp.email);
+      if(resp.outros) line('Outros', resp.outros);
+    });
     y += 3;
   }
 
   const s = c.senhas || {};
   const hasSenha = (o) => o && (o.nome || o.login || o.senha);
-  if(hasSenha(s.prefeitura) || hasSenha(s.sistema1) || hasSenha(s.sistema2)){
+  const listaSistemas = getSistemasArray(c).filter(hasSenha);
+  if(hasSenha(s.prefeitura) || listaSistemas.length){
     sectionTitle('Senhas');
     if(hasSenha(s.prefeitura)){ line('Prefeitura — Login', s.prefeitura.login); line('Prefeitura — Senha', s.prefeitura.senha); }
-    if(hasSenha(s.sistema1)){ line((s.sistema1.nome||'Sistema 1')+' — Login', s.sistema1.login); line((s.sistema1.nome||'Sistema 1')+' — Senha', s.sistema1.senha); }
-    if(hasSenha(s.sistema2)){ line((s.sistema2.nome||'Sistema 2')+' — Login', s.sistema2.login); line((s.sistema2.nome||'Sistema 2')+' — Senha', s.sistema2.senha); }
+    listaSistemas.forEach((sis, idx) => {
+      const nome = sis.nome || `Sistema ${idx+1}`;
+      line(nome+' — Login', sis.login);
+      line(nome+' — Senha', sis.senha);
+    });
     y += 3;
   }
 
   sectionTitle('Declaração');
-  DECLARACAO_FIELDS.forEach(([k,lbl,,def]) => line(lbl, (snap.declaracao && snap.declaracao[k]) || def));
+  getDeclaracaoFieldsForCompany(c).forEach(([k,lbl,,def]) => line(lbl, (snap.declaracao && snap.declaracao[k]) || def));
   y += 3;
+
+  const obrigFields = getObrigacoesFieldsForCompany(c);
+  if(obrigFields.length){
+    sectionTitle('Obrigações');
+    obrigFields.forEach(([k,lbl,,def]) => {
+      const valor = k === 'dctfWeb' ? ((snap.declaracao && snap.declaracao[k]) || def) : ((snap.obrigacoes && snap.obrigacoes[k]) || def);
+      line(lbl, valor);
+    });
+    y += 3;
+  }
 
   sectionTitle('Apuração');
   DOC_FIELDS.forEach(([k,lbl,,def]) => line(lbl, (snap.documentos && snap.documentos[k]) || def));
@@ -82,8 +94,21 @@ export function buildCompanyPdfBlob(c, snap, label){
   getImpostosFieldsForCompany(c).forEach(([k,lbl,,def]) => {
     const status = (snap.impostos && snap.impostos[k]) || def;
     const money = fmtMoney(snap.impostosValores && snap.impostosValores[k]);
-    line(lbl, money ? `${status} — ${money}` : status);
+    const venc = snap.impostosVencimentos && snap.impostosVencimentos[k];
+    let texto = money ? `${status} — ${money}` : status;
+    if(venc) texto += ` (vence ${fmtDate(venc)})`;
+    if(isReinfLabel(lbl)){
+      const tipos = (snap.impostosReinfTipos && snap.impostosReinfTipos[k]) || {};
+      const nomes = REINF_TIPOS.filter(([tk]) => tipos[tk]).map(([,tl]) => tl);
+      if(nomes.length) texto += ` [${nomes.join(', ')}]`;
+    }
+    line(lbl, texto);
   });
+
+  if(snap.tempoApuracaoSegundos){
+    y += 3;
+    line('Tempo de apuração', formatTempo(snap.tempoApuracaoSegundos));
+  }
 
   if(c.observacoesApuracao){
     y += 3;

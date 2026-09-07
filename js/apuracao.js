@@ -1,35 +1,21 @@
-import { $, $$, debounce, escapeHtml, initials, fmtDate, statusClass, statusLabel, docFieldWithValue, copyableField, copyValue } from './utils.js';
+import { $, $$, debounce, toast, escapeHtml, initials, fmtDate, formatTempo, ativarAnimacaoBarras } from './utils.js';
 import { DATA, saveData, setPerfilReturnTo } from './state.js';
 import { openModal, closeModal } from './modal.js';
-import { IMPOSTOS_FIELDS, getImpostosFieldsForCompany, hasImpostoConcluido, docsProgressPercent } from './fields.js';
-import { guiaBadgeHtml, bindGuiaButtons } from './guias.js';
-import { openPerfil } from './perfil.js';
+import { docsProgressPercent } from './fields.js';
+import { openPerfil, tempoApuracaoEfetivo } from './perfil.js';
 
-let apurFilter = 'todas';
+let apurFilter = 'PENDENTE';
 
 export function renderApuracao(){
   const list = DATA.companies.filter(c => !c.baixada);
-  $('#aTotal').textContent = list.length;
+  $('#aGeral').textContent = list.length;
   $('#aPendente').textContent = list.filter(c=>c.status==='PENDENTE').length;
   $('#aAndamento').textContent = list.filter(c=>c.status==='ANDAMENTO').length;
   $('#aConcluida').textContent = list.filter(c=>c.status==='CONCLUIDA').length;
-  $('#aFinalizadas').textContent = list.filter(c=>hasImpostoConcluido(c)).length;
-  populateImpostoTipoFilter();
   renderApurList();
 }
 
-function populateImpostoTipoFilter(){
-  const sel = $('#apurImpostoTipoFilter');
-  const currentValue = sel.value;
-  const custom = (DATA.impostosCustom || []).map(f => [f.key, f.label]);
-  const all = IMPOSTOS_FIELDS.map(([k,label]) => [k,label]).concat(custom);
-  sel.innerHTML = `<option value="">Tipo de imposto: todos</option>` +
-    all.map(([k,label]) => `<option value="${k}">${escapeHtml(label)}</option>`).join('');
-  if(all.some(([k]) => k === currentValue)) sel.value = currentValue;
-}
-
-function renderApurList(){
-  $('#apurImpostoTipoFilter').style.display = (apurFilter === 'finalizadas') ? 'inline-flex' : 'none';
+export function renderApurList(){
   const q = $('#apurSearch').value.trim().toLowerCase();
   let list = DATA.companies.filter(c => !c.baixada);
 
@@ -42,14 +28,8 @@ function renderApurList(){
       (c.numero||'').toLowerCase().includes(q)
     );
   }
-  if(apurFilter === 'finalizadas'){
-    list = list.filter(c => hasImpostoConcluido(c));
-  } else if(apurFilter !== 'todas'){
+  if(apurFilter !== 'GERAL'){
     list = list.filter(c => c.status === apurFilter);
-  }
-  const decFilter = $('#apurDeclaracaoFilter').value;
-  if(decFilter){
-    list = list.filter(c => ((c.declaracao && c.declaracao.declaracao) || 'PENDENTE') === decFilter);
   }
   const dificFilter = $('#apurDificuldadeFilter').value;
   if(dificFilter){
@@ -59,12 +39,23 @@ function renderApurList(){
   if(regimeFilter){
     list = list.filter(c => c.regime === regimeFilter);
   }
-  const impostoTipoFilter = $('#apurImpostoTipoFilter').value;
-  if(impostoTipoFilter){
-    list = list.filter(c => (c.impostos && c.impostos[impostoTipoFilter]) === 'CONCLUIDO');
+  const issqnFilter = $('#apurIssqnFilter').value;
+  if(issqnFilter === 'PRESTADO'){
+    list = list.filter(c => c.issqnPrest === 'SIM');
+  } else if(issqnFilter === 'TOMADO'){
+    list = list.filter(c => c.issqnTomado === 'SIM');
+  } else if(issqnFilter === 'QUALQUER'){
+    list = list.filter(c => c.issqnPrest === 'SIM' && c.issqnTomado === 'SIM');
+  }
+  const fatorRFilter = $('#apurFatorRFilter').value;
+  if(fatorRFilter === 'SIM'){
+    list = list.filter(c => c.fatorR === 'SIM');
+  } else if(fatorRFilter === 'NAO'){
+    list = list.filter(c => c.fatorR !== 'SIM');
   }
 
   const ordenarPor = $('#apurOrdenarPor').value;
+  $('#apurOrdenarPor').style.display = (apurFilter === 'GERAL') ? '' : 'none';
   $('#apurDragHint').style.display = (ordenarPor === 'manual') ? 'block' : 'none';
   const semVenc = '9999-99-99';
   function manualIdx(id){
@@ -72,7 +63,23 @@ function renderApurList(){
     const idx = arr.indexOf(id);
     return idx === -1 ? Infinity : idx;
   }
+  const PRIORITY_RANK = { 'A+':1, 'A':2, 'B+':3, 'B':4, 'C+':5, 'C':6, 'D':7 };
+  function priorityRankOf(c){ return PRIORITY_RANK[c.prioridadeApuracao] || 99; }
+  function priorityClassOf(v){
+    return { 'A+':'p-Aplus', 'A':'p-A', 'B+':'p-Bplus', 'B':'p-B', 'C+':'p-Cplus', 'C':'p-C', 'D':'p-D' }[v] || 'p-none';
+  }
+  const PRIORITY_OPTIONS = ['', 'A+', 'A', 'B+', 'B', 'C+', 'C', 'D'];
+
+  // pré-calcula o progresso uma vez só por empresa (evita recalcular a cada comparação do sort)
+  let pctCache = null;
+  if(ordenarPor === 'progresso_menor' || ordenarPor === 'progresso_maior'){
+    pctCache = new Map();
+    list.forEach(c => pctCache.set(c.id, docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao, c.regime, c.obrigacoes, c.fatorR, c.fatorRStatus)));
+  }
+
   list = list.slice().sort((a,b) => {
+    const pr = priorityRankOf(a) - priorityRankOf(b);
+    if(pr !== 0) return pr;
     switch(ordenarPor){
       case 'manual': {
         const d = manualIdx(a.id) - manualIdx(b.id);
@@ -81,8 +88,8 @@ function renderApurList(){
       case 'nome_za': return b.razaoSocial.localeCompare(a.razaoSocial);
       case 'venc_prox': return (a.vencimento||semVenc).localeCompare(b.vencimento||semVenc);
       case 'venc_dist': return (b.vencimento||'').localeCompare(a.vencimento||'');
-      case 'progresso_menor': return docsProgressPercent(a.documentos, a.documentosPadrao, a.declaracao) - docsProgressPercent(b.documentos, b.documentosPadrao, b.declaracao);
-      case 'progresso_maior': return docsProgressPercent(b.documentos, b.documentosPadrao, b.declaracao) - docsProgressPercent(a.documentos, a.documentosPadrao, a.declaracao);
+      case 'progresso_menor': return pctCache.get(a.id) - pctCache.get(b.id);
+      case 'progresso_maior': return pctCache.get(b.id) - pctCache.get(a.id);
       default: return a.razaoSocial.localeCompare(b.razaoSocial);
     }
   });
@@ -95,42 +102,66 @@ function renderApurList(){
     return;
   }
 
-  box.innerHTML = list.map(c => `
+  box.innerHTML = list.map(c => {
+  const pctRow = docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao, c.regime, c.obrigacoes, c.fatorR, c.fatorRStatus);
+  return `
     <div class="client-row" data-id="${c.id}" ${ordenarPor==='manual' ? 'draggable="true"' : ''} style="${ordenarPor==='manual' ? 'cursor:grab' : ''}">
       <div class="client-main">
         ${ordenarPor==='manual' ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1.1em" height="1.1em" fill="currentColor" class="icon-svg" style="color:var(--muted);flex:none;margin-right:2px"><circle cx="8" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg>` : ''}
+        <select class="priority-select ${priorityClassOf(c.prioridadeApuracao)}" data-priorityselect="${c.id}" title="Classificar prioridade — quanto mais alta, mais no topo da lista">
+          ${PRIORITY_OPTIONS.map(v => `<option value="${v}" ${(c.prioridadeApuracao||'')===v?'selected':''}>${v||'–'}</option>`).join('')}
+        </select>
         <div class="avatar">${initials(c.razaoSocial)||'?'}</div>
         <div style="min-width:0">
           <div class="client-name">${escapeHtml(c.razaoSocial)}</div>
-          <div class="client-meta">${c.numero?('Nº '+c.numero+' · '):''}${c.municipio||''}${c.uf?'/'+c.uf:''} ${c.vencimento ? '· vence '+fmtDate(c.vencimento) : ''}</div>
+          <div class="client-meta">${c.numero?('Nº '+c.numero+' · '):''}${c.atividade?(escapeHtml(c.atividade)+' · '):''}${c.issqnPrest==='SIM'?'<span class="meta-badge meta-badge-blue">ISSQN Prest.</span>':''}${c.issqnTomado==='SIM'?'<span class="meta-badge meta-badge-blue">ISSQN Tomado</span>':''}${c.fatorR==='SIM'?'<span class="meta-badge meta-badge-orange">Fator R</span>':''}${c.municipio||''}${c.uf?'/'+c.uf:''} ${c.vencimento ? '· vence '+fmtDate(c.vencimento) : ''}${apurFilter==='GERAL' ? ` · tempo: ${formatTempo(tempoApuracaoEfetivo(c))}` : ''}</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex:none">
-        ${apurFilter === 'todas' ? `
-          <span class="status-pill ${statusClass(c.status)}">${statusLabel(c.status)}</span>
-          <span style="display:inline-flex;align-items:center;gap:5px">
-            <span style="display:inline-block;width:60px;height:7px;background:var(--line);border-radius:4px;overflow:hidden">
-              <span style="display:block;height:100%;width:${docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao)}%;background:var(--green)"></span>
-            </span>
-            <span class="small-muted" style="font-size:.7rem">${docsProgressPercent(c.documentos, c.documentosPadrao, c.declaracao)}%</span>
+        <span style="display:inline-flex;align-items:center;gap:5px">
+          <span style="display:inline-block;width:60px;height:7px;background:var(--line);border-radius:4px;overflow:hidden">
+            <span class="progress-fill" style="display:block;height:100%;width:${pctRow}%" data-bar-target="${pctRow}%"></span>
           </span>
-        ` : ''}
-        ${apurFilter === 'finalizadas'
-          ? `<button class="btn btn-outline btn-sm" data-verimpostos="${c.id}">Ver</button>`
-          : `<button class="btn btn-outline btn-sm" data-iniciar="${c.id}">Iniciar</button>`}
+          <span class="small-muted" style="font-size:.7rem">${pctRow}%</span>
+        </span>
+        ${apurFilter === 'CONCLUIDA' ? `<button class="btn btn-outline btn-sm" data-verapuracao="${c.id}">Ver Apuração</button>`
+          : apurFilter !== 'GERAL' ? `<button class="btn btn-outline btn-sm" data-iniciar="${c.id}">Iniciar</button>` : ''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  ativarAnimacaoBarras($('#apurList'));
 
-  $$('#apurList [data-iniciar]').forEach(btn => btn.addEventListener('click', (e) => {
+  $$('#apurList [data-priorityselect]').forEach(sel => {
+    sel.addEventListener('click', (e) => e.stopPropagation());
+    sel.addEventListener('change', async (e) => {
+      e.stopPropagation();
+      const c = DATA.companies.find(x => x.id === sel.dataset.priorityselect);
+      if(!c) return;
+      c.prioridadeApuracao = sel.value || '';
+      sel.className = 'priority-select ' + priorityClassOf(c.prioridadeApuracao);
+      await saveData();
+      renderApurList();
+      toast(c.prioridadeApuracao ? `Prioridade definida como ${c.prioridadeApuracao}.` : 'Prioridade removida.');
+    });
+  });
+
+  $$('#apurList [data-iniciar]').forEach(btn => btn.addEventListener('click', async (e) => {
     e.stopPropagation();
+    const c = DATA.companies.find(x => x.id === btn.dataset.iniciar);
+    if(c && !c.tempoApuracaoRodando){
+      c.tempoApuracaoRodando = true;
+      c.tempoApuracaoInicio = new Date().toISOString();
+      await saveData();
+    }
     closeModal('#modalApuracao');
     setPerfilReturnTo('apuracao');
     openPerfil(btn.dataset.iniciar, true);
   }));
-  $$('#apurList [data-verimpostos]').forEach(btn => btn.addEventListener('click', (e) => {
+  $$('#apurList [data-verapuracao]').forEach(btn => btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const c = DATA.companies.find(x => x.id === btn.dataset.verimpostos);
-    if(c) openImpostosConcluidosView(c);
+    closeModal('#modalApuracao');
+    setPerfilReturnTo('apuracao');
+    openPerfil(btn.dataset.verapuracao);
   }));
 
   if(ordenarPor === 'manual'){
@@ -173,68 +204,27 @@ async function reorderManual(srcId, targetId){
   renderApurList();
 }
 
-function openImpostosConcluidosView(c){
-  $('#histDetTitulo').textContent = c.razaoSocial;
-  $('#histDetData').textContent = 'Impostos marcados como Concluído';
-  const imp = c.impostos || {};
-  const impV = c.impostosValores || {};
-  const resp = c.responsavelEmpresa || {};
-
-  let infoTop = `
-    <div class="row2">
-      ${copyableField('CNPJ / CPF', c.cnpj)}
-      <div><span class="small-muted">Nome do responsável</span><br><strong>${escapeHtml(resp.nome)||'—'}</strong></div>
-    </div>`;
-  const contatoRows = [];
-  if((resp.telefone||'').trim()) contatoRows.push(copyableField('Telefone', resp.telefone));
-  if((resp.email||'').trim()) contatoRows.push(copyableField('E-mail', resp.email));
-  if((resp.outros||'').trim()) contatoRows.push(copyableField('Outros', resp.outros));
-  for(let i=0;i<contatoRows.length;i+=2){
-    infoTop += `<div class="row2" style="margin-top:10px">${contatoRows[i]}${contatoRows[i+1]||''}</div>`;
-  }
-
-  const fields = getImpostosFieldsForCompany(c).filter(([k]) => imp[k] === 'CONCLUIDO');
-  let body = infoTop + `<div class="divider"></div>`;
-  if(fields.length === 0){
-    body += `<div class="empty">Nenhum imposto concluído ainda para esta empresa.</div>`;
-  } else {
-    body += fields.map(([k,label,,def]) => `
-      <div class="client-row" style="cursor:default;align-items:flex-start;flex-wrap:wrap;gap:10px">
-        <div style="min-width:140px;font-weight:700;font-size:.85rem;padding-top:2px">${escapeHtml(label)}</div>
-        <div style="flex:1;min-width:160px">${docFieldWithValue('', imp[k]||def, impV[k])}</div>
-        <div>${guiaBadgeHtml(c,k)}</div>
-      </div>`).join('');
-  }
-  $('#histDetBody').innerHTML = body;
-  $$('#histDetBody .copy-field[data-copy]').forEach(el => {
-    el.addEventListener('click', () => copyValue(el.dataset.copy, el.dataset.label));
-  });
-  bindGuiaButtons($('#histDetBody'), c, () => openImpostosConcluidosView(c));
-  openModal('#modalHistoricoDetalhe');
-}
-
 $$('#apurChips .chip').forEach(chip => chip.addEventListener('click', () => {
   apurFilter = chip.dataset.afilter;
   $$('#apurChips .chip').forEach(c=>c.classList.remove('active'));
   chip.classList.add('active');
-  if(apurFilter !== 'finalizadas') $('#apurImpostoTipoFilter').value = '';
   renderApurList();
 }));
 $('#apurSearch').addEventListener('input', debounce(renderApurList, 150));
-$('#apurDeclaracaoFilter').addEventListener('change', renderApurList);
 $('#apurDificuldadeFilter').addEventListener('change', renderApurList);
 $('#apurRegimeFilter').addEventListener('change', renderApurList);
-$('#apurImpostoTipoFilter').addEventListener('change', renderApurList);
+$('#apurIssqnFilter').addEventListener('change', renderApurList);
+$('#apurFatorRFilter').addEventListener('change', renderApurList);
 $('#apurOrdenarPor').addEventListener('change', renderApurList);
 $('#btnApuracao').addEventListener('click', () => {
-  apurFilter = 'todas';
+  apurFilter = 'PENDENTE';
   $$('#apurChips .chip').forEach(c=>c.classList.remove('active'));
-  $('#apurChips .chip.total').classList.add('active');
+  $('#apurChips .chip.pendente').classList.add('active');
   $('#apurSearch').value = '';
-  $('#apurDeclaracaoFilter').value = '';
   $('#apurDificuldadeFilter').value = '';
   $('#apurRegimeFilter').value = '';
-  $('#apurImpostoTipoFilter').value = '';
+  $('#apurIssqnFilter').value = '';
+  $('#apurFatorRFilter').value = '';
   $('#apurOrdenarPor').value = 'manual';
   renderApuracao();
   openModal('#modalApuracao');

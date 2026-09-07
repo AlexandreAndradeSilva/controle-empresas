@@ -1,6 +1,6 @@
 import { $, toast } from './utils.js';
 import { DATA, saveData, setData } from './state.js';
-import { openModal, closeModal } from './modal.js';
+import { openModal, closeModal, confirmDialog } from './modal.js';
 import { render } from './companies.js';
 
 $('#btnBackup').addEventListener('click', () => { openModal('#modalBackup'); });
@@ -20,6 +20,7 @@ $('#importJson').addEventListener('change', (e) => {
     try{
       const parsed = JSON.parse(reader.result);
       if(!parsed.companies) throw new Error('formato inválido');
+      if(!parsed.metas) parsed.metas = [];
       setData(parsed);
       await saveData();
       render();
@@ -30,8 +31,9 @@ $('#importJson').addEventListener('change', (e) => {
   reader.readAsText(file);
 });
 $('#btnWipe').addEventListener('click', async () => {
-  if(!confirm('Isso apagará todas as empresas cadastradas. Confirma?')) return;
-  setData({ companies: [] });
+  if(!(await confirmDialog('Isso apagará todas as empresas cadastradas. Confirma?', {okLabel:'Apagar tudo'}))) return;
+  // as metas nao sao empresas: sobrevivem ao "apagar todos os dados"
+  setData({ companies: [], metas: DATA.metas || [] });
   await saveData();
   render();
   closeModal('#modalBackup');
