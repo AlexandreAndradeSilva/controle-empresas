@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Controle de Empresas</title>
+<title>FISCAL CONTROL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
@@ -128,15 +128,42 @@
 <div class="wrap" id="appRoot" style="display:none">
 
   <div class="header">
-    <h1>Controle de Empresas</h1>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex:none">
+        <rect x="1" y="1" width="38" height="38" rx="10" fill="url(#logoGrad)" stroke="#c99a3d" stroke-width="1.5"/>
+        <path d="M12 10h11l4 4v16a2 2 0 0 1-2 2H12a2 2 0 0 1-2-2V12a2 2 0 0 1 2-2z" fill="#f3f1ea"/>
+        <path d="M23 10v4h4" stroke="#20566f" stroke-width="1.3" fill="none" stroke-linejoin="round"/>
+        <line x1="13.5" y1="18.2" x2="24.5" y2="18.2" stroke="#20566f" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="13.5" y1="22.2" x2="24.5" y2="22.2" stroke="#20566f" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="13.5" y1="26.2" x2="20" y2="26.2" stroke="#20566f" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="28.5" cy="27.5" r="6.3" fill="#c99a3d" stroke="#0a2233" stroke-width="1.4"/>
+        <path d="M25.6 27.6l1.9 1.9 3.3-3.7" stroke="#0a2233" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <defs>
+          <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#17435c"/>
+            <stop offset="1" stop-color="#0a2233"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <h1 style="margin:0">FISCAL CONTROL</h1>
+    </div>
     <div class="header-actions">
-      <button class="btn btn-ghost" id="btnBaixadas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg> Empresas Baixadas <span class="badge" id="baixadasCount" style="margin-left:4px">0</span></button>
+      <button class="btn btn-ghost" id="btnBaixadas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg> Empresas Arquivadas</button>
       <button class="btn btn-ghost" id="btnGerenciarImpostos"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg> Gerenciar Impostos</button>
+      <button class="btn btn-ghost" id="btnRelatorio"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg> Relatório</button>
+      <button class="btn btn-ghost" id="btnMetas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Metas <span class="badge" id="metasAtivasCount" style="display:none;margin-left:2px">0</span></button>
       <button class="btn-icon" id="btnDark" title="Alternar tema"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
       <button class="btn-icon" id="btnBackup" title="Backup / Restaurar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       <button class="btn-icon" id="btnAlterarSenha" title="Alterar senha"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
       <button class="btn-icon" id="btnLogout" title="Sair"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
     </div>
+  </div>
+
+  <div class="banner" id="bannerNotificacaoDia" style="display:none;background:var(--warn-bg);border-color:var(--warn-border);color:var(--warn-ink);align-items:center">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="flex:none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span id="bannerNotificacaoDiaText" style="flex:1"></span>
+    <button class="btn btn-outline btn-sm" id="btnVerNotificacaoDia">Ver no calendário</button>
+    <button class="btn-icon" id="btnDispensarNotificacaoDia" title="Dispensar" style="margin-left:4px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
   </div>
 
   <div class="cards3">
@@ -148,8 +175,20 @@
     <button class="action-card" id="btnApuracao">
       <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></span>
       <h3>Apuração do Mês</h3>
-      <p>Em breve</p>
+      <p>Veja o progresso e gerencie a apuração de cada empresa</p>
     </button>
+    <button class="action-card" id="btnCalendarioVencimentos">
+      <span class="icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg></span>
+      <h3>Calendário de Vencimentos <span class="badge" id="calPendentesCount">0</span></h3>
+      <p>Veja os impostos que vencem em cada dia</p>
+    </button>
+  </div>
+
+  <div class="banner" id="bannerMetasAvisos" style="display:none;background:var(--warn-bg);border-color:var(--warn-border);color:var(--warn-ink);align-items:flex-start">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+    <div id="bannerMetasAvisosText" style="flex:1;display:flex;flex-direction:column;gap:4px"></div>
+    <button class="btn btn-outline btn-sm" id="btnVerMetasBanner" style="flex:none">Ver metas</button>
+    <button class="btn-icon" id="btnDispensarMetasBanner" title="Dispensar" style="margin-left:4px;flex:none"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button>
   </div>
 
   <div class="panel">
@@ -165,6 +204,17 @@
           <option value="LUCRO PRESUMIDO">Lucro Presumido</option>
           <option value="LUCRO REAL">Lucro Real</option>
         </select>
+        <select id="homeIssqnFilter" style="border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">ISSQN: todas</option>
+          <option value="PRESTADO">Só Prestado</option>
+          <option value="TOMADO">Só Tomado</option>
+          <option value="QUALQUER">Prestado ou Tomado</option>
+        </select>
+        <select id="homeFatorRFilter" style="border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+          <option value="">Fator R: todas</option>
+          <option value="SIM">Fator R: Sim</option>
+          <option value="NAO">Fator R: Não</option>
+        </select>
         <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:var(--ink);cursor:pointer;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 12px">
           <input type="checkbox" id="filtroCertVencendo" style="width:16px;height:16px;accent-color:var(--red)">
           Certificados vencendo este mês
@@ -178,7 +228,7 @@
     <div id="clientList"></div>
   </div>
 
-  <p class="footer-note">Controle de Empresas</p>
+  <p class="footer-note">FISCAL CONTROL</p>
 </div>
 
 <!-- MODAL: Empresa (novo/editar) -->
@@ -186,10 +236,11 @@
   <div class="modal modal-fullscreen" style="overflow-y:auto">
     <div style="max-width:min(1100px,92vw);margin:0 auto">
     <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
-    <div class="modal-head"><h2 id="empresaModalTitle">Nova empresa</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <div class="modal-head"><h2 id="empresaModalTitle">Nova empresa</h2><div style="display:flex;align-items:center;gap:8px"><button class="close-x" id="btnPrintEmpresaForm" title="Imprimir"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div></div>
     <input type="hidden" id="empId">
 
-    <div class="section-title">Identificação</div>
+    <div class="section-title" style="display:flex;align-items:center;gap:7px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span>Identificação</span></div>
+    <div class="form-card">
     <div class="field">
       <label>CNPJ / CPF</label>
       <input id="fCnpj" placeholder="Digite o CNPJ para preencher automático, ou CPF" maxlength="18">
@@ -200,16 +251,28 @@
       <div class="field"><label>Nº</label><input id="fNumero" placeholder="Código interno"></div>
       <div class="field"><label>IE</label><input id="fIe" placeholder="Ou 'isenta'"></div>
     </div>
-    <div class="field"><label>Atividade</label>
-      <select id="fAtividade">
-        <option value="">Selecione...</option>
-        <option value="SERVIÇOS">Serviços</option>
-        <option value="SERVIÇOS/COMÉRCIO">Serviços / Comércio</option>
-        <option value="COMÉRCIO">Comércio</option>
-        <option value="COMÉRCIO/INDUSTRIA">Comércio / Indústria</option>
-        <option value="INDUSTRIA">Indústria</option>
-        <option value="INDUSTRIA/SERVIÇOS">Indústria / Serviços</option>
-      </select>
+    <div class="row4">
+      <div class="field"><label>Atividade</label>
+        <select id="fAtividade">
+          <option value="">Selecione...</option>
+          <option value="SERVIÇOS">Serviços</option>
+          <option value="SERVIÇOS/COMÉRCIO">Serviços / Comércio</option>
+          <option value="COMÉRCIO">Comércio</option>
+          <option value="COMÉRCIO/INDUSTRIA">Comércio / Indústria</option>
+          <option value="INDUSTRIA">Indústria</option>
+          <option value="INDUSTRIA/COMERCIO">Indústria / Comércio</option>
+        </select>
+      </div>
+      <div class="field"><label>ISSQN Prest.</label>
+        <select id="fIssqnPrest"><option value="NAO">Não</option><option value="SIM">Sim</option></select>
+      </div>
+      <div class="field"><label>ISSQN Tomado</label>
+        <select id="fIssqnTomado"><option value="NAO">Não</option><option value="SIM">Sim</option></select>
+      </div>
+      <div class="field"><label>Dia de vencimento da Guia ISS</label>
+        <input type="number" id="fDiaVencimentoIss" min="1" max="31" placeholder="Ex.: 10">
+        <p class="small-muted" style="margin-top:5px">Repete todo mês nesse dia, no Calendário de Vencimentos.</p>
+      </div>
     </div>
     <div class="row2">
       <div class="field"><label>Município</label><input id="fMunicipio"></div>
@@ -257,7 +320,7 @@
       </div>
       <div class="field"><label>Responsáveis</label><input id="fResponsaveis" placeholder="Nome / Nome"></div>
     </div>
-    <div class="field"><label>Regime</label>
+    <div class="field" style="margin-bottom:0"><label>Regime</label>
       <select id="fRegime">
         <option value="">Selecione...</option>
         <option value="SIMPLES NACIONAL">Simples Nacional</option>
@@ -265,45 +328,44 @@
         <option value="LUCRO REAL">Lucro Real</option>
       </select>
     </div>
+    <div class="field" id="fatorRWrap" style="margin-top:14px;margin-bottom:0;display:none">
+      <label>Fator R</label>
+      <select id="fFatorR">
+        <option value="NAO">Não</option>
+        <option value="SIM">Sim</option>
+      </select>
+    </div>
+    </div>
 
-    <div class="section-title">Situação</div>
+    <div class="section-title" style="display:flex;align-items:center;gap:7px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg><span>Situação</span></div>
+    <div class="form-card">
     <div class="field"><label>Vencimento / Certificado</label><input id="fVencimento" type="date"></div>
-    <div class="checkbox-row"><input type="checkbox" id="fBaixada"><label for="fBaixada" style="margin:0">Empresa baixada</label></div>
-    <div class="field" id="motivoBaixaWrap" style="display:none">
+    <div class="field"><label>Observações da empresa</label><textarea id="fObservacoesEmpresa" rows="2" placeholder="Alguma observação geral sobre essa empresa..."></textarea></div>
+    <div class="checkbox-row" style="margin-bottom:0"><input type="checkbox" id="fBaixada"><label for="fBaixada" style="margin:0">Empresa arquivada</label></div>
+    <div class="field" id="motivoBaixaWrap" style="display:none;margin-top:14px;margin-bottom:0">
       <label>Motivo da baixa *</label>
-      <textarea id="fMotivoBaixa" rows="2" placeholder="Explique por que a empresa foi baixada"></textarea>
+      <textarea id="fMotivoBaixa" rows="2" placeholder="Explique por que a empresa foi arquivada"></textarea>
+    </div>
     </div>
 
-    <div class="section-title">Responsável pela empresa</div>
-    <div class="row2">
-      <div class="field"><label>Nome</label><input id="fRespNome" placeholder="Nome do responsável"></div>
-      <div class="field"><label>Telefone</label><input id="fRespTelefone" placeholder="(00) 00000-0000"></div>
+    <div class="section-title" style="display:flex;align-items:center;gap:7px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Responsável pela empresa</span></div>
+    <div class="form-card">
+      <div id="responsaveisContainer"></div>
+      <button type="button" class="btn btn-outline btn-sm" id="btnAddResponsavel" style="margin-top:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M12 5v14"/><path d="M5 12h14"/></svg> Adicionar responsável</button>
     </div>
-    <div class="field"><label>E-mail</label><input id="fRespEmail" type="email" placeholder="email@empresa.com"></div>
-    <div class="field"><label>Outros</label><textarea id="fRespOutros" rows="2" placeholder="Outras informações de contato"></textarea></div>
 
-    <div class="section-title">Senhas</div>
-    <div class="small-muted" style="margin-bottom:6px;font-weight:700">Prefeitura</div>
+    <div class="section-title" style="display:flex;align-items:center;gap:7px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Senhas</span></div>
+    <div class="form-card">
+    <div class="doc-group-title">Prefeitura</div>
     <div class="field"><label>Link do site (opcional)</label><input id="fPrefLink" placeholder="https://..."></div>
     <div class="row2">
       <div class="field"><label>Login</label><input id="fPrefLogin" placeholder="Login"></div>
-      <div class="field"><label>Senha</label><input id="fPrefSenha" placeholder="Senha"></div>
+      <div class="field"><label>Senha</label><div style="display:flex;gap:6px"><input id="fPrefSenha" type="password" placeholder="Senha" style="flex:1"><button type="button" class="btn-icon" data-toggleinputsenha="fPrefSenha" style="flex:none" title="Mostrar/ocultar senha"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
     </div>
 
-    <div class="small-muted" style="margin-bottom:6px;font-weight:700">Sistema 1</div>
-    <div class="field"><label>Nome do sistema</label><input id="fSis1Nome" placeholder="Ex.: SEBRAE"></div>
-    <div class="field"><label>Link do site (opcional)</label><input id="fSis1Link" placeholder="https://..."></div>
-    <div class="row2">
-      <div class="field"><label>Login</label><input id="fSis1Login" placeholder="Login"></div>
-      <div class="field"><label>Senha</label><input id="fSis1Senha" placeholder="Senha"></div>
-    </div>
-
-    <div class="small-muted" style="margin-bottom:6px;font-weight:700">Sistema 2</div>
-    <div class="field"><label>Nome do sistema</label><input id="fSis2Nome" placeholder="Ex.: Bling"></div>
-    <div class="field"><label>Link do site (opcional)</label><input id="fSis2Link" placeholder="https://..."></div>
-    <div class="row2">
-      <div class="field"><label>Login</label><input id="fSis2Login" placeholder="Login"></div>
-      <div class="field"><label>Senha</label><input id="fSis2Senha" placeholder="Senha"></div>
+    <div class="doc-group-title">Sistemas</div>
+    <div id="sistemasContainer"></div>
+    <button type="button" class="btn btn-outline btn-sm" id="btnAddSistema" style="margin-top:6px;margin-bottom:0"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M12 5v14"/><path d="M5 12h14"/></svg> Adicionar sistema</button>
     </div>
 
     <div class="modal-actions" style="justify-content:space-between">
@@ -322,7 +384,13 @@
   <div class="modal modal-fullscreen" style="overflow-y:auto">
     <div style="max-width:min(1500px,95vw);margin:0 auto">
     <button class="btn btn-outline btn-sm" id="btnVoltarPerfil" style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
-    <div class="modal-head"><h2 id="perfilNome">Empresa</h2><div style="display:flex;align-items:center;gap:4px"><button class="close-x" id="btnPrintPerfil" title="Imprimir"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div></div>
+    <div class="modal-head"><h2 id="perfilNome">Empresa</h2><div style="display:flex;align-items:center;gap:8px">
+      <div id="timerApuracaoWrap" style="display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:9px;padding:6px 10px;background:var(--bg)">
+        <span id="timerApuracaoTexto" style="font-variant-numeric:tabular-nums;font-weight:700;font-size:.85rem;color:var(--ink);min-width:58px;text-align:center">00:00:00</span>
+        <button type="button" class="btn-icon" id="btnTimerApuracao" title="Iniciar cronômetro da apuração" style="width:26px;height:26px;background:var(--card);color:var(--navy-700);border:1px solid var(--line);border-radius:7px"></button>
+      </div>
+      <button class="btn btn-primary btn-sm" id="btnIniciarTopo" style="display:none">Iniciar</button>
+      <button class="btn btn-primary btn-sm" id="btnSalvarDocsTop" style="display:none">Salvar</button><button class="close-x" id="btnPadraoGeral" title="Definir padrões da empresa"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></button><button class="close-x" id="btnPrintPerfil" title="Imprimir"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div></div>
     <p class="small-muted" id="perfilMeta"></p>
     <div class="divider"></div>
     <div id="perfilBody"></div>
@@ -344,12 +412,11 @@
       </div>
     </div>
 
-    <div class="chips" id="apurChips">
-      <button class="chip total active" data-afilter="todas"><span class="num" id="aTotal">0</span><span class="lbl">TOTAL</span></button>
-      <button class="chip pendente" data-afilter="PENDENTE"><span class="num" id="aPendente">0</span><span class="lbl">PENDENTE</span></button>
+    <div class="chips" id="apurChips" style="grid-template-columns:repeat(4,1fr)">
+      <button class="chip geral" data-afilter="GERAL"><span class="num" id="aGeral">0</span><span class="lbl">GERAL</span></button>
+      <button class="chip pendente active" data-afilter="PENDENTE"><span class="num" id="aPendente">0</span><span class="lbl">PENDENTE</span></button>
       <button class="chip andamento" data-afilter="ANDAMENTO"><span class="num" id="aAndamento">0</span><span class="lbl">ANDAMENTO</span></button>
       <button class="chip concluida" data-afilter="CONCLUIDA"><span class="num" id="aConcluida">0</span><span class="lbl">CONCLUÍDA</span></button>
-      <button class="chip finalizadas" data-afilter="finalizadas"><span class="num" id="aFinalizadas">0</span><span class="lbl">IMPOSTO/GUIAS</span></button>
     </div>
 
     <div class="search" style="margin-top:14px">
@@ -358,31 +425,32 @@
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px">
       <p class="small-muted" style="margin:0" id="apurCount"></p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <select id="apurDificuldadeFilter" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+      <div class="filter-bar">
+        <select id="apurDificuldadeFilter" class="filter-select">
           <option value="">Dificuldade: todas</option>
           <option value="FACIL">Fácil</option>
           <option value="NORMAL">Normal</option>
           <option value="DIFICIL">Difícil</option>
           <option value="SEM MOVIMENTO">Sem movimento</option>
         </select>
-        <select id="apurRegimeFilter" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+        <select id="apurRegimeFilter" class="filter-select">
           <option value="">Regime: todos</option>
           <option value="SIMPLES NACIONAL">Simples Nacional</option>
           <option value="LUCRO PRESUMIDO">Lucro Presumido</option>
           <option value="LUCRO REAL">Lucro Real</option>
         </select>
-        <select id="apurDeclaracaoFilter" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
-          <option value="">Declaração: todas</option>
-          <option value="PENDENTE">Declaração: Pendente</option>
-          <option value="SOLICITADO">Declaração: Solicitado</option>
-          <option value="CLIENTE_ENVIOU">Declaração: Cliente enviou</option>
-          <option value="RELATORIO_PREFEITURA">Declaração: Relatório da Prefeitura</option>
+        <select id="apurIssqnFilter" class="filter-select">
+          <option value="">ISSQN: todas</option>
+          <option value="PRESTADO">Só Prestado</option>
+          <option value="TOMADO">Só Tomado</option>
+          <option value="QUALQUER">Prestado ou Tomado</option>
         </select>
-        <select id="apurImpostoTipoFilter" style="display:none;border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
-          <option value="">Tipo de imposto: todos</option>
+        <select id="apurFatorRFilter" class="filter-select">
+          <option value="">Fator R: todas</option>
+          <option value="SIM">Fator R: Sim</option>
+          <option value="NAO">Fator R: Não</option>
         </select>
-        <select id="apurOrdenarPor" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+        <select id="apurOrdenarPor" class="filter-select">
           <option value="manual" selected>Ordenar: Arrastar (manual)</option>
           <option value="nome_az">Ordenar: Nome (A-Z)</option>
           <option value="nome_za">Ordenar: Nome (Z-A)</option>
@@ -401,18 +469,224 @@
   </div>
 </div>
 
-<!-- MODAL: Padrão de Apuração -->
-<div class="overlay" id="modalPadrao">
+<!-- MODAL: Vencimentos -->
+<div class="overlay" id="modalVenc">
   <div class="modal modal-fullscreen" style="overflow-y:auto">
     <div style="max-width:700px;margin:0 auto">
     <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
-    <div class="modal-head"><h2 id="padraoModalTitle">Padrão da Apuração</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <div class="modal-head"><h2>Próximos vencimentos</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Ordenado por data de vencimento/certificado mais próxima.</p>
+    <div class="divider"></div>
+    <div id="vencList"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Calendário de Vencimentos -->
+<div class="overlay" id="modalCalendario">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1400px,96vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Calendário de Vencimentos</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Mostra as datas de vencimento inseridas na tela de Impostos de cada empresa. Clique num imposto pra abrir a empresa.</p>
+    <div class="cal-nav">
+      <div class="cal-nav-mid">
+        <button class="btn-icon" id="calPrev" title="Mês anterior"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <h3 id="calMonthLabel">Mês</h3>
+        <button class="btn-icon" id="calNext" title="Próximo mês"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="position:relative">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="calEmpresaFiltro" list="calEmpresaDatalist" placeholder="Empresa: todas" autocomplete="off" style="border:1px solid var(--line);border-radius:9px;padding:7px 10px 7px 32px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink);width:220px">
+          <datalist id="calEmpresaDatalist"></datalist>
+        </div>
+        <button class="btn btn-outline btn-sm" id="calRestaurarIss" title="Traz de volta os avisos de Guia ISS que você marcou como resolvidos nesse mês">Restaurar avisos ISS</button>
+        <button class="btn btn-outline btn-sm" id="calHoje">Hoje</button>
+      </div>
+    </div>
+    <div class="cal-weekdays"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Metas -->
+<div class="overlay" id="modalMetas">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(900px,96vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Metas e Avisos</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Crie metas com filtros de empresas (ex: "todas com Fator R", "só ISSQN", "sem movimento"), de ritmo semanal, ou totalmente livres — e receba avisos personalizados quando o progresso avançar ou o prazo se aproximar.</p>
+
+    <div class="modal-actions" style="justify-content:flex-start;margin-top:4px">
+      <button class="btn btn-primary btn-sm" id="btnNovaMeta"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M12 5v14"/><path d="M5 12h14"/></svg> Nova meta</button>
+    </div>
+
+    <!-- formulário (escondido até clicar em Nova meta / Editar) -->
+    <div class="form-card" id="metaFormCard" style="margin-top:14px;display:none">
+      <h3 id="metaFormTitulo" style="margin:0 0 12px;font-size:.92rem">Nova meta</h3>
+      <input type="hidden" id="metaFormId">
+      <div class="field">
+        <label>Tipo de meta</label>
+        <select id="metaFormTipo">
+          <option value="checklist">Cumprir uma ação em várias empresas até um prazo (ex: Fator R, ISSQN, MIT, sem movimento)</option>
+          <option value="ritmo">Ritmo semanal (ex: fechar X empresas por semana)</option>
+          <option value="livre">Personalizada (valor-alvo numérico livre)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nome da meta</label>
+        <input type="text" id="metaFormNome" placeholder='Ex: "Fechar todas as empresas com Fator R"'>
+      </div>
+
+      <!-- CHECKLIST: filtro de empresas + ação + prazo -->
+      <div id="metaFormChecklistBlock">
+        <div class="section-title" style="margin-top:4px">Quais empresas entram nessa meta</div>
+        <div class="row3">
+          <div class="field">
+            <label>Regime</label>
+            <select id="metaFiltroRegime">
+              <option value="">Todos os regimes</option>
+              <option value="SIMPLES NACIONAL">Simples Nacional</option>
+              <option value="LUCRO PRESUMIDO">Lucro Presumido</option>
+              <option value="LUCRO REAL">Lucro Real</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Fator R</label>
+            <select id="metaFiltroFatorR">
+              <option value="">Não importa</option>
+              <option value="SIM">Só com Fator R</option>
+              <option value="NAO">Só sem Fator R</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>ISSQN</label>
+            <select id="metaFiltroIssqn">
+              <option value="">Não importa</option>
+              <option value="QUALQUER">Prestado ou Tomado</option>
+              <option value="PRESTADO">Só Prestado</option>
+              <option value="TOMADO">Só Tomado</option>
+            </select>
+          </div>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="metaFiltroSemMovimento">
+          <label for="metaFiltroSemMovimento" style="margin:0;font-weight:600;font-size:.85rem;color:var(--ink)">Só empresas marcadas como "Sem movimento"</label>
+        </div>
+        <div class="field">
+          <label>O que precisa ser feito em cada empresa</label>
+          <select id="metaFormAcao">
+            <option value="apuracao_concluida">Fechar a apuração do mês</option>
+            <option value="mit_entregue">Entregar o MIT</option>
+            <option value="guia_iss_enviada">Enviar a Guia ISSQN deste mês</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Prazo</label>
+          <input type="date" id="metaFormPrazoChecklist">
+        </div>
+      </div>
+
+      <!-- RITMO SEMANAL -->
+      <div id="metaFormRitmoBlock" style="display:none">
+        <div class="row2">
+          <div class="field">
+            <label>Quantas empresas fechar por semana</label>
+            <input type="number" id="metaFormRitmoQtd" min="1" step="1" placeholder="Ex: 10">
+          </div>
+          <div class="field">
+            <label>Regime (opcional)</label>
+            <select id="metaRitmoFiltroRegime">
+              <option value="">Todos os regimes</option>
+              <option value="SIMPLES NACIONAL">Simples Nacional</option>
+              <option value="LUCRO PRESUMIDO">Lucro Presumido</option>
+              <option value="LUCRO REAL">Lucro Real</option>
+            </select>
+          </div>
+        </div>
+        <div class="row3">
+          <div class="field">
+            <label>Fator R (opcional)</label>
+            <select id="metaRitmoFiltroFatorR">
+              <option value="">Não importa</option>
+              <option value="SIM">Só com Fator R</option>
+              <option value="NAO">Só sem Fator R</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>ISSQN (opcional)</label>
+            <select id="metaRitmoFiltroIssqn">
+              <option value="">Não importa</option>
+              <option value="QUALQUER">Prestado ou Tomado</option>
+              <option value="PRESTADO">Só Prestado</option>
+              <option value="TOMADO">Só Tomado</option>
+            </select>
+          </div>
+          <div class="field" style="display:flex;align-items:flex-end">
+            <div class="checkbox-row" style="margin-bottom:10px">
+              <input type="checkbox" id="metaRitmoFiltroSemMovimento">
+              <label for="metaRitmoFiltroSemMovimento" style="margin:0;font-weight:600;font-size:.85rem;color:var(--ink)">Sem movimento</label>
+            </div>
+          </div>
+        </div>
+        <p class="small-muted">Conta as empresas cuja apuração foi concluída dentro da semana atual (segunda a domingo). Reinicia toda semana.</p>
+      </div>
+
+      <!-- LIVRE -->
+      <div class="row2" id="metaFormLivreRow" style="display:none">
+        <div class="field">
+          <label>Valor atual</label>
+          <input type="number" id="metaFormValorAtual" placeholder="0" step="any">
+        </div>
+        <div class="field">
+          <label>Valor-alvo (unidade opcional, ex: 10 clientes / R$ 5000)</label>
+          <input type="text" id="metaFormValorAlvo" placeholder='Ex: "10 clientes" ou "5000"'>
+        </div>
+      </div>
+      <div class="field" id="metaFormPrazoLivreWrap" style="display:none">
+        <label>Prazo (opcional)</label>
+        <input type="date" id="metaFormPrazo">
+      </div>
+
+      <div class="divider"></div>
+      <div class="row2">
+        <div class="field">
+          <label>Avisar quando atingir (%)</label>
+          <input type="number" id="metaFormAvisoPct" min="1" max="100" value="80">
+        </div>
+        <div class="field">
+          <label>Mensagem de aviso personalizada (opcional)</label>
+          <input type="text" id="metaFormAvisoTexto" placeholder='Ex: "Quase lá! Falta pouco pra bater essa meta."'>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="btnCancelarMeta">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarMeta">Salvar meta</button>
+      </div>
+    </div>
+
+    <div id="metasList" style="margin-top:16px;display:flex;flex-direction:column;gap:12px"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Padrão de Apuração -->
+<div class="overlay" id="modalPadrao">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:900px;margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2 id="padraoModalTitle">Padrões da empresa</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
     <p class="small-muted">Defina como cada campo já deve aparecer no início de todo mês para esta empresa. Deixe em "Usar padrão do sistema" para não fixar nada.</p>
     <div class="divider"></div>
     <div id="padraoFields"></div>
     <div class="modal-actions">
       <button class="btn btn-outline" data-close>Cancelar</button>
-      <button class="btn btn-primary" id="btnSalvarPadrao">Salvar padrão</button>
+      <button class="btn btn-primary" id="btnSalvarPadrao">Salvar padrões</button>
     </div>
     </div>
   </div>
@@ -424,20 +698,28 @@
     <div style="max-width:700px;margin:0 auto">
     <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
     <div class="modal-head"><h2>Gerenciar Impostos</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
-    <p class="small-muted">DIFAL, CRF, IRRF, REINF, ISSQN Prest. e ISSQN Toma. aparecem sempre, pra todas as empresas. Aqui você pode adicionar outros impostos que só aparecem para empresas de um regime específico (ou de todos).</p>
-    <div class="divider"></div>
 
-    <div class="section-title">Adicionar novo imposto</div>
-    <div class="field"><label>Nome do imposto</label><input id="novoImpostoNome" placeholder="Ex.: ICMS ST"></div>
-    <div style="margin-bottom:14px">
-      <div class="small-muted" style="font-weight:600;margin-bottom:8px">Aparece para o(s) regime(s)</div>
-      <label style="display:flex;align-items:center;gap:8px;font-weight:400;padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" value="SIMPLES NACIONAL" class="novoImpostoRegime" style="width:17px;height:17px;accent-color:var(--navy-700)"> Simples Nacional</label>
-      <label style="display:flex;align-items:center;gap:8px;font-weight:400;padding:8px 0;border-bottom:1px solid var(--line)"><input type="checkbox" value="LUCRO PRESUMIDO" class="novoImpostoRegime" style="width:17px;height:17px;accent-color:var(--navy-700)"> Lucro Presumido</label>
-      <label style="display:flex;align-items:center;gap:8px;font-weight:400;padding:8px 0"><input type="checkbox" value="LUCRO REAL" class="novoImpostoRegime" style="width:17px;height:17px;accent-color:var(--navy-700)"> Lucro Real</label>
+    <div class="banner" style="display:flex;background:#e2eaf5;border-color:#b9cbe0;color:#1e4363;margin-top:12px">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      <span>Os impostos que aparecem na Apuração de cada empresa dependem do <strong>Regime</strong> selecionado no cadastro dela. Aqui você define quais impostos valem para cada regime (ou para mais de um). Empresa sem regime selecionado fica com a Apuração de Impostos em branco.</span>
     </div>
-    <button class="btn btn-primary btn-sm" id="btnAddImpostoCustom">+ Adicionar imposto</button>
 
-    <div class="divider"></div>
+    <div class="section-title">Impostos padrão do sistema</div>
+    <p class="small-muted" style="margin-top:-4px">Já vêm prontos por regime — não dá pra remover, só ativar ou desativar. Pra ligar um só pra um cliente específico (mesmo desativado aqui), use o botão ao lado de "Impostos" no perfil dessa empresa.</p>
+    <div id="impostosSistemaList"></div>
+
+    <div class="form-card" style="margin-top:16px">
+      <div class="section-title" style="margin-top:0">Adicionar novo imposto</div>
+      <div class="field" style="margin-bottom:16px"><label>Nome do imposto</label><input id="novoImpostoNome" placeholder="Ex.: ICMS ST"></div>
+      <div class="small-muted" style="font-weight:700;margin-bottom:8px">Aparece para o(s) regime(s)</div>
+      <div class="regime-chip-row">
+        <label class="regime-chip"><input type="checkbox" value="SIMPLES NACIONAL" class="novoImpostoRegime"><span>Simples Nacional</span></label>
+        <label class="regime-chip"><input type="checkbox" value="LUCRO PRESUMIDO" class="novoImpostoRegime"><span>Lucro Presumido</span></label>
+        <label class="regime-chip"><input type="checkbox" value="LUCRO REAL" class="novoImpostoRegime"><span>Lucro Real</span></label>
+      </div>
+      <button class="btn btn-primary btn-sm" id="btnAddImpostoCustom" style="margin-top:16px">+ Adicionar imposto</button>
+    </div>
+
     <div class="section-title">Impostos adicionados</div>
     <div id="impostosCustomList"></div>
 
@@ -446,12 +728,12 @@
   </div>
 </div>
 
-<!-- MODAL: Empresas Baixadas -->
+<!-- MODAL: Empresas Arquivadas -->
 <div class="overlay" id="modalBaixadas">
   <div class="modal modal-fullscreen" style="overflow-y:auto">
     <div style="max-width:min(1500px,95vw);margin:0 auto">
     <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
-    <div class="modal-head"><h2>Empresas Baixadas</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <div class="modal-head"><h2>Empresas Arquivadas</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
     <p class="small-muted">Empresas arquivadas — não entram mais na apuração, mas todo o histórico e os dados continuam guardados aqui.</p>
     <div class="search" style="margin-top:12px">
       <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>
@@ -521,7 +803,8 @@
     <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
     <div class="modal-head"><h2>Backup e restauração</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
 
-    <p class="small-muted">Seus dados já ficam salvos automaticamente no banco de dados a cada alteração. Use esta tela apenas para exportar um arquivo avulso (guardar em outro lugar) ou restaurar um backup antigo.</p>
+    <div class="small-muted" style="font-weight:700;color:var(--navy-600);text-transform:uppercase;font-size:.72rem;letter-spacing:.4px">Backup manual</div>
+    <p class="small-muted">Os dados ficam no Supabase, salvos a cada alteração. Use o backup manual para guardar uma cópia avulsa em <code>.json</code> ou para migrar de projeto.</p>
     <div class="modal-actions" style="justify-content:flex-start;margin-top:10px">
       <button class="btn btn-outline btn-sm" id="btnExportJson"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg> Exportar backup (.json)</button>
       <label class="btn btn-outline btn-sm" style="cursor:pointer"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M5 3h14"/></svg> Importar backup<input type="file" id="importJson" accept="application/json" style="display:none"></label>
@@ -532,6 +815,91 @@
   </div>
 </div>
 
+<!-- MODAL: Impostos do sistema para uma empresa específica -->
+<div class="overlay" id="modalImpostosSistemaEmpresa">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head"><h2>Impostos do sistema — só para esta empresa</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Por padrão, cada imposto segue o que está configurado em "Gerenciar Impostos". Aqui você pode forçar Ativo ou Inativo só pra essa empresa.</p>
+    <div id="impostosSistemaEmpresaList" style="margin-top:10px"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Relatório -->
+<div class="overlay" id="modalRelatorio">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1100px,94vw);margin:0 auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <button class="btn btn-outline btn-sm" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" id="btnRelatorioExportar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Exportar Excel</button>
+        <button class="btn btn-outline btn-sm" id="btnRelatorioHistorico"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Meses anteriores</button>
+      </div>
+    </div>
+    <div class="modal-head"><h2>Relatório</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Um retrato rápido de onde o tempo e os impostos concluídos estão concentrados.</p>
+    <div id="relatorioGraficos" style="margin-top:16px;display:grid;grid-template-columns:1.8fr 1fr;gap:16px;align-items:start"></div>
+    <div id="relatorioProporcaoCarteira" style="margin-top:16px"></div>
+    <div id="relatorioComparativo" style="margin-top:16px"></div>
+    <div class="form-card" style="margin-top:16px">
+      <div class="section-title" style="margin-top:0;display:flex;justify-content:space-between;align-items:center">
+        <span>Empresas concluídas por dia</span>
+        <div class="cal-nav-mid" style="gap:6px">
+          <button class="btn-icon" id="relCalPrev" title="Mês anterior"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <h3 id="relCalMesLabel" style="margin:0;font-size:.85rem;min-width:120px;text-align:center">Mês</h3>
+          <button class="btn-icon" id="relCalNext" title="Próximo mês"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M9 18l6-6-6-6"/></svg></button>
+          <button type="button" class="btn-icon" data-expandirgrafico="calendario" title="Ver em tela cheia" style="background:none;border:none;color:var(--muted)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg></button>
+        </div>
+      </div>
+      <div class="cal-weekdays"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
+      <div class="cal-grid" id="relatorioCalGrid"></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Relatório — gráfico expandido -->
+<div class="overlay" id="modalRelatorioExpandido">
+  <div class="modal" style="max-width:96vw;width:96vw;max-height:92vh;height:92vh;display:flex;flex-direction:column">
+    <div class="modal-head"><h2 id="relatorioExpandidoTitulo">Gráfico</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <div id="relatorioExpandidoBody" style="flex:1;overflow-y:auto;padding-top:6px"></div>
+  </div>
+</div>
+
+<!-- MODAL: Relatório — lista de meses anteriores -->
+<div class="overlay" id="modalRelatorioHistoricoLista">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head"><h2>Relatórios de meses anteriores</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <div id="relatorioHistoricoLista"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Relatório — detalhe de um mês arquivado -->
+<div class="overlay" id="modalRelatorioMesDetalhe">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(1100px,94vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2 id="relatorioMesDetalheTitulo">Relatório</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Retrato arquivado no momento em que esse mês foi encerrado.</p>
+    <div class="row2" id="relatorioMesDetalheGraficos" style="margin-top:16px;align-items:start"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirmação (substitui o confirm() nativo, que em alguns contextos não abre) -->
+<div class="overlay" id="modalConfirm">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head"><h2 id="confirmTitulo">Confirmar</h2></div>
+    <p id="confirmMensagem" style="white-space:pre-line;font-size:.88rem;line-height:1.55"></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="confirmCancelar">Cancelar</button>
+      <button class="btn btn-danger" id="confirmOk">Confirmar</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="modalSenha">
   <div class="modal">
     <div class="modal-head"><h2>Alterar senha</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>

@@ -1,4 +1,4 @@
-import { $ } from './utils.js';
+import { $, initSelectColoring } from './utils.js';
 import { loadData } from './state.js';
 import { getSession, initAuthForm, showApp, showLogin } from './auth.js';
 import { initModals } from './modal.js';
@@ -10,9 +10,13 @@ import './perfil.js';
 import './guias.js';
 import './impostosCustom.js';
 import './historico.js';
+import './calendario.js';
+import './metas.js';
+import './relatorio.js';
 import './backup.js';
 
 initModals();
+initSelectColoring();
 
 /* ---------------- dark mode ---------------- */
 $('#btnDark').addEventListener('click', () => {

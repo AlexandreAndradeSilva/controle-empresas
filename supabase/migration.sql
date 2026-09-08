@@ -29,7 +29,21 @@ create table if not exists public.companies (
   observacoes text default '',
   observacoes_apuracao text default '',
 
-  responsavel_empresa jsonb not null default '{}',
+  -- ISSQN, Fator R e prioridade entraram com a tela de Apuracao nova
+  issqn_prest text default 'NAO',
+  issqn_tomado text default 'NAO',
+  dia_vencimento_iss smallint,
+  fator_r text default '',
+  fator_r_status text default 'PENDENTE',
+  prioridade_apuracao text default '',
+
+  -- cronometro por empresa (o "Iniciar" da Apuracao do Mes)
+  tempo_apuracao_segundos numeric not null default 0,
+  tempo_apuracao_rodando boolean not null default false,
+  tempo_apuracao_inicio timestamptz,
+  data_concluida timestamptz,
+
+  responsavel_empresa jsonb not null default '[]',
   senhas jsonb not null default '{}',
   documentos jsonb not null default '{}',
   documentos_padrao jsonb not null default '{}',
@@ -39,6 +53,18 @@ create table if not exists public.companies (
   impostos_padrao jsonb not null default '{}',
   impostos_valores jsonb not null default '{}',
   impostos_guias jsonb not null default '{}',
+  -- vencimento por imposto (alimenta o Calendario), tipos do REINF e o
+  -- "ja enviei essa guia?" -- que e uma marcacao propria do calendario e nao
+  -- se confunde com o status da apuracao
+  impostos_vencimentos jsonb not null default '{}',
+  impostos_reinf_tipos jsonb not null default '{}',
+  impostos_enviado jsonb not null default '{}',
+  -- liga/desliga um imposto padrao do sistema so para esta empresa
+  impostos_sistema_override jsonb not null default '{}',
+  -- meses em que o lembrete da Guia ISS ja foi dado como resolvido
+  iss_dismissed_meses jsonb not null default '{}',
+  obrigacoes jsonb not null default '{}',
+  obrigacoes_padrao jsonb not null default '{}',
   historico jsonb not null default '[]',
 
   created_at timestamptz not null default now(),
@@ -61,11 +87,15 @@ create table if not exists public.impostos_custom (
 create index if not exists impostos_custom_owner_id_idx on public.impostos_custom(owner_id);
 
 -- ---------------------------------------------------------------------------
--- Configurações por usuário (hoje só a ordem manual da Apuração do Mês)
+-- Configurações por usuário: ordem manual da Apuração, metas, relatórios
+-- arquivados e quais impostos padrão do sistema estão desligados.
 -- ---------------------------------------------------------------------------
 create table if not exists public.user_settings (
   owner_id uuid primary key references auth.users(id) on delete cascade default auth.uid(),
-  ordem_apuracao_manual jsonb not null default '[]'
+  ordem_apuracao_manual jsonb not null default '[]',
+  metas jsonb not null default '[]',
+  relatorios_historico jsonb not null default '[]',
+  impostos_sistema_desativados jsonb not null default '[]'
 );
 
 -- ---------------------------------------------------------------------------
@@ -285,3 +315,98 @@ create trigger check_invite_on_signup
 --
 --   delete from public.invites where code = 'EQUIPE-2026' and used_at is null;
 -- ---------------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------------
+-- Atualização de schema (FISCAL CONTROL)
+--
+-- Os "create table if not exists" acima só valem para um projeto novo: num
+-- projeto que já rodou a versão anterior desta migration as tabelas existem e
+-- aquele bloco não faz nada. Este bloco é quem acrescenta as colunas novas.
+-- É idempotente: rodar de novo não quebra nada e não apaga dado nenhum.
+-- ---------------------------------------------------------------------------
+alter table public.companies add column if not exists issqn_prest text default 'NAO';
+alter table public.companies add column if not exists issqn_tomado text default 'NAO';
+alter table public.companies add column if not exists dia_vencimento_iss smallint;
+alter table public.companies add column if not exists fator_r text default '';
+alter table public.companies add column if not exists fator_r_status text default 'PENDENTE';
+alter table public.companies add column if not exists prioridade_apuracao text default '';
+
+alter table public.companies add column if not exists tempo_apuracao_segundos numeric not null default 0;
+alter table public.companies add column if not exists tempo_apuracao_rodando boolean not null default false;
+alter table public.companies add column if not exists tempo_apuracao_inicio timestamptz;
+alter table public.companies add column if not exists data_concluida timestamptz;
+
+alter table public.companies add column if not exists impostos_vencimentos jsonb not null default '{}';
+alter table public.companies add column if not exists impostos_reinf_tipos jsonb not null default '{}';
+alter table public.companies add column if not exists impostos_enviado jsonb not null default '{}';
+alter table public.companies add column if not exists impostos_sistema_override jsonb not null default '{}';
+alter table public.companies add column if not exists iss_dismissed_meses jsonb not null default '{}';
+alter table public.companies add column if not exists obrigacoes jsonb not null default '{}';
+alter table public.companies add column if not exists obrigacoes_padrao jsonb not null default '{}';
+
+alter table public.user_settings add column if not exists metas jsonb not null default '[]';
+alter table public.user_settings add column if not exists relatorios_historico jsonb not null default '[]';
+alter table public.user_settings add column if not exists impostos_sistema_desativados jsonb not null default '[]';
+
+-- Uma empresa passou a poder ter mais de um responsável: o campo era um objeto
+-- único e virou lista. Converte o que já estava gravado, preservando o conteúdo
+-- (um objeto vazio vira lista vazia; um objeto preenchido vira lista de um item).
+update public.companies
+   set responsavel_empresa = case
+         when jsonb_typeof(responsavel_empresa) = 'array'  then responsavel_empresa
+         when responsavel_empresa = '{}'::jsonb            then '[]'::jsonb
+         else jsonb_build_array(responsavel_empresa)
+       end
+ where jsonb_typeof(responsavel_empresa) <> 'array';
+
+alter table public.companies alter column responsavel_empresa set default '[]';
+
+-- ---------------------------------------------------------------------------
+-- OPCIONAL, E NAO RODA SOZINHO: chaves de imposto da versao anterior
+--
+-- Na versao anterior os impostos eram seis campos fixos, com as chaves
+-- 'difal', 'crf', 'irrf', 'reinf', 'issqnPrest' e 'issqnToma'. Nesta versao os
+-- impostos padrao do sistema passaram a variar por regime e ganharam outras
+-- chaves ('sis_difal', 'sis_efd_reinf', ...). O que ja estava gravado continua
+-- intacto no banco, mas com as chaves antigas -- ou seja, some da tela.
+--
+-- A correspondencia NAO e total, por isso este bloco esta comentado:
+--
+--   difal      -> sis_difal            (direta)
+--   reinf      -> sis_efd_reinf        (direta)
+--   issqnPrest -> sis_issqn_prestado   ) so que ISSQN Prestado/Tomado agora
+--   issqnToma  -> sis_issqn_tomado     ) so existe em Lucro Presumido/Real:
+--                                        numa empresa do Simples o valor
+--                                        renomeado continua sem aparecer
+--   crf        -> sem equivalente
+--   irrf       -> sem equivalente direto (IRRF virou um tipo dentro do REINF)
+--
+-- Decida caso a caso antes de rodar. Descomente o que quiser aplicar. Os meses
+-- ja encerrados (coluna `historico`) NAO sao tocados por este bloco: eles sao
+-- um retrato do que foi apurado na epoca e continuam com as chaves antigas.
+--
+-- update public.companies set
+--   impostos         = impostos         - 'difal' || jsonb_build_object('sis_difal', impostos->'difal'),
+--   impostos_padrao  = impostos_padrao  - 'difal' || jsonb_build_object('sis_difal', impostos_padrao->'difal'),
+--   impostos_valores = impostos_valores - 'difal' || jsonb_build_object('sis_difal', impostos_valores->'difal'),
+--   impostos_guias   = impostos_guias   - 'difal' || jsonb_build_object('sis_difal', impostos_guias->'difal')
+-- where impostos ? 'difal' or impostos_padrao ? 'difal'
+--    or impostos_valores ? 'difal' or impostos_guias ? 'difal';
+--
+-- update public.companies set
+--   impostos         = impostos         - 'reinf' || jsonb_build_object('sis_efd_reinf', impostos->'reinf'),
+--   impostos_padrao  = impostos_padrao  - 'reinf' || jsonb_build_object('sis_efd_reinf', impostos_padrao->'reinf'),
+--   impostos_valores = impostos_valores - 'reinf' || jsonb_build_object('sis_efd_reinf', impostos_valores->'reinf'),
+--   impostos_guias   = impostos_guias   - 'reinf' || jsonb_build_object('sis_efd_reinf', impostos_guias->'reinf')
+-- where impostos ? 'reinf' or impostos_padrao ? 'reinf'
+--    or impostos_valores ? 'reinf' or impostos_guias ? 'reinf';
+--
+-- Conferir antes o que existe hoje, empresa por empresa:
+--
+--   select razao_social, regime,
+--          impostos, impostos_valores
+--     from public.companies
+--    where impostos ?| array['difal','crf','irrf','reinf','issqnPrest','issqnToma']
+--    order by razao_social;
+-- ---------------------------------------------------------------------------
+

@@ -43,10 +43,10 @@ export function isValidDoc(v){
 export function statusClass(s){ return s==='PENDENTE' ? 'status-late' : (s==='ANDAMENTO' ? 'status-mid' : 'status-ok'); }
 export function statusColorKind(v){
   if(v === 'CONCLUIDO' || v === 'FEITO' || v === 'CLIENTE_ENVIOU' || v === 'RELATORIO_PREFEITURA' || v === 'MOVIMENTO ENCERRADO') return 'ok';
-  if(v === 'PENDENTE') return 'late';
+  if(v === 'PENDENTE' || v === 'LANÇAR' || v === 'CONFERIR' || v === 'FECHAR DCTF') return 'late';
   if(!v) return '';
   if(v.includes('NÃO TEM') || v==='NÃO PAGA' || v==='NÃO PRECISA') return 'neutral';
-  if(v==='SEM MOVIMENTO' || v==='LANÇAR' || v==='CALCULAR' || v==='SOLICITADO' || v==='FECHAR DCTF') return 'mid';
+  if(v==='SEM MOVIMENTO' || v==='CALCULAR' || v==='SOLICITADO') return 'mid';
   return '';
 }
 export function docPillClass(v){
@@ -64,7 +64,7 @@ export function colorizeSelect(sel){
 }
 export function colorizeSelectsIn(container){
   if(!container) return;
-  container.querySelectorAll('select[data-dockey], select[data-impkey], select[data-deckey], select[data-padraokey]').forEach(colorizeSelect);
+  container.querySelectorAll('select[data-dockey], select[data-impkey], select[data-deckey], select[data-padraokey], select[data-obrigkey], select[data-fatorrstatus]').forEach(colorizeSelect);
 }
 document.addEventListener('change', (e) => {
   if(e.target.matches && e.target.matches('select[data-dockey], select[data-impkey], select[data-deckey], select[data-padraokey]')){
@@ -132,4 +132,70 @@ export function isVencendoEsteMes(vencimentoISO){
   const hoje = new Date();
   const [y,m] = vencimentoISO.split('-');
   return parseInt(y) === hoje.getFullYear() && parseInt(m) === (hoje.getMonth()+1);
+}
+
+/* Anima as barras de progresso do zero até o valor real, de forma confiável
+   (em vez de depender de @keyframes com variável CSS, que trava em alguns navegadores). */
+export function ativarAnimacaoBarras(container){
+  if(!container) return;
+  const barras = container.querySelectorAll('[data-bar-target]');
+  const barrasV = container.querySelectorAll('[data-bar-target-h]');
+  if(barras.length === 0 && barrasV.length === 0) return;
+  barras.forEach(el => { el.style.width = '0%'; });
+  barrasV.forEach(el => { el.style.height = '0%'; });
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      barras.forEach(el => { el.style.width = el.dataset.barTarget; });
+      barrasV.forEach(el => { el.style.height = el.dataset.barTargetH; });
+    });
+  });
+}
+
+/* ---------------- datas ---------------- */
+export function pad2(n){ return String(n).padStart(2,'0'); }
+export function isoDate(y,m,d){ return `${y}-${pad2(m+1)}-${pad2(d)}`; }
+export const MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+export function monthLabelPT(date){ return MESES_PT[date.getMonth()] + '/' + date.getFullYear(); }
+export function mesKeyDe(date){ return `${date.getFullYear()}-${pad2(date.getMonth()+1)}`; }
+export function mesKeyAtual(){ return mesKeyDe(new Date()); }
+
+/* ---------------- tempo ---------------- */
+export function formatTempo(totalSegundos){
+  totalSegundos = Math.max(0, Math.floor(totalSegundos||0));
+  const h = Math.floor(totalSegundos/3600);
+  const m = Math.floor((totalSegundos%3600)/60);
+  const s = totalSegundos%60;
+  return [h,m,s].map(n => String(n).padStart(2,'0')).join(':');
+}
+
+/* ---------------- gráficos ---------------- */
+export function lightenHex(hex, percent){
+  hex = hex.replace('#','');
+  if(hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+  const num = parseInt(hex, 16);
+  const r = Math.min(255, (num >> 16) + Math.round(255 * percent));
+  const g = Math.min(255, ((num >> 8) & 0x00FF) + Math.round(255 * percent));
+  const b = Math.min(255, (num & 0x0000FF) + Math.round(255 * percent));
+  return '#' + ((1<<24) + (r<<16) + (g<<8) + b).toString(16).slice(1);
+}
+/* barra desenhada com caracteres, para as planilhas do Excel */
+export function barraTexto(pct, largura){
+  largura = largura || 20;
+  const p = Math.max(0, Math.min(100, pct));
+  const preenchido = Math.round(p/100*largura);
+  return '█'.repeat(preenchido) + '░'.repeat(largura-preenchido) + ' ' + p.toFixed(1) + '%';
+}
+
+export function sanitizeFileName(name){
+  return (name||'empresa').replace(/[\/:*?"<>|]/g,'-').trim().slice(0,80);
+}
+
+/* Recolore qualquer select de status assim que o valor muda, sem cada tela
+   precisar reamarrar isso na mão. Chamado uma vez, no boot. */
+export function initSelectColoring(){
+  document.addEventListener('change', (e) => {
+    if(e.target.matches && e.target.matches('select[data-dockey], select[data-impkey], select[data-deckey], select[data-padraokey], select[data-obrigkey], select[data-fatorrstatus]')){
+      colorizeSelect(e.target);
+    }
+  });
 }

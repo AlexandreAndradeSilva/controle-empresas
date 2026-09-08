@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient.js';
 
 /* ---------------- state ---------------- */
-export let DATA = { companies: [] };
+export let DATA = { companies: [], metas: [] };
 export let currentProfileId = null;
 export let perfilReturnTo = null;
 
@@ -12,6 +12,9 @@ export function setData(newData){ DATA = newData; }
 let ownerId = null;
 export function getOwnerId(){ return ownerId; }
 
+/* Colunas de data/hora não aceitam string vazia; o app usa '' para "sem valor". */
+function nullIfBlank(v){ return v ? v : null; }
+
 /* ---------------- mapeamento companies (linha do Supabase <-> objeto usado no app) ---------------- */
 function rowToCompany(row){
   return {
@@ -21,27 +24,44 @@ function rowToCompany(row){
     cnpj: row.cnpj || '',
     ie: row.ie || '',
     atividade: row.atividade || '',
+    issqnPrest: row.issqn_prest || 'NAO',
+    issqnTomado: row.issqn_tomado || 'NAO',
+    diaVencimentoIss: row.dia_vencimento_iss || '',
     municipio: row.municipio || '',
     uf: row.uf || '',
     dificuldade: row.dificuldade || 'FACIL',
     responsaveis: row.responsaveis || '',
     regime: row.regime || '',
+    fatorR: row.fator_r || '',
+    fatorRStatus: row.fator_r_status || 'PENDENTE',
+    prioridadeApuracao: row.prioridade_apuracao || '',
     status: row.status || 'PENDENTE',
     vencimento: row.vencimento || '',
     baixada: !!row.baixada,
     motivoBaixa: row.motivo_baixa || '',
     dataBaixa: row.data_baixa || '',
     situacaoDocumentos: row.situacao_documentos || '',
-    responsavelEmpresa: row.responsavel_empresa || {},
+    responsavelEmpresa: row.responsavel_empresa || [],
     senhas: row.senhas || {},
     documentos: row.documentos || {},
     documentosPadrao: row.documentos_padrao || {},
     declaracao: row.declaracao || {},
     declaracaoPadrao: row.declaracao_padrao || {},
+    obrigacoes: row.obrigacoes || {},
+    obrigacoesPadrao: row.obrigacoes_padrao || {},
     impostos: row.impostos || {},
     impostosPadrao: row.impostos_padrao || {},
     impostosValores: row.impostos_valores || {},
+    impostosVencimentos: row.impostos_vencimentos || {},
+    impostosReinfTipos: row.impostos_reinf_tipos || {},
+    impostosEnviado: row.impostos_enviado || {},
+    impostosSistemaOverride: row.impostos_sistema_override || {},
     impostosGuias: row.impostos_guias || {},
+    issDismissedMeses: row.iss_dismissed_meses || {},
+    tempoApuracaoSegundos: Number(row.tempo_apuracao_segundos) || 0,
+    tempoApuracaoRodando: !!row.tempo_apuracao_rodando,
+    tempoApuracaoInicio: row.tempo_apuracao_inicio || null,
+    dataConcluida: row.data_concluida || '',
     historico: row.historico || [],
     observacoes: row.observacoes || '',
     observacoesApuracao: row.observacoes_apuracao || ''
@@ -57,34 +77,51 @@ function companyToRow(c){
     cnpj: c.cnpj || '',
     ie: c.ie || '',
     atividade: c.atividade || '',
+    issqn_prest: c.issqnPrest === 'SIM' ? 'SIM' : 'NAO',
+    issqn_tomado: c.issqnTomado === 'SIM' ? 'SIM' : 'NAO',
+    dia_vencimento_iss: c.diaVencimentoIss || null,
     municipio: c.municipio || '',
     uf: c.uf || '',
     dificuldade: c.dificuldade || 'FACIL',
     responsaveis: c.responsaveis || '',
     regime: c.regime || '',
+    fator_r: c.fatorR || '',
+    fator_r_status: c.fatorRStatus || 'PENDENTE',
+    prioridade_apuracao: c.prioridadeApuracao || '',
     status: c.status || 'PENDENTE',
-    vencimento: c.vencimento || null,
+    vencimento: nullIfBlank(c.vencimento),
     baixada: !!c.baixada,
     motivo_baixa: c.motivoBaixa || '',
-    data_baixa: c.dataBaixa || null,
+    data_baixa: nullIfBlank(c.dataBaixa),
     situacao_documentos: c.situacaoDocumentos || '',
-    responsavel_empresa: c.responsavelEmpresa || {},
+    responsavel_empresa: c.responsavelEmpresa || [],
     senhas: c.senhas || {},
     documentos: c.documentos || {},
     documentos_padrao: c.documentosPadrao || {},
     declaracao: c.declaracao || {},
     declaracao_padrao: c.declaracaoPadrao || {},
+    obrigacoes: c.obrigacoes || {},
+    obrigacoes_padrao: c.obrigacoesPadrao || {},
     impostos: c.impostos || {},
     impostos_padrao: c.impostosPadrao || {},
     impostos_valores: c.impostosValores || {},
+    impostos_vencimentos: c.impostosVencimentos || {},
+    impostos_reinf_tipos: c.impostosReinfTipos || {},
+    impostos_enviado: c.impostosEnviado || {},
+    impostos_sistema_override: c.impostosSistemaOverride || {},
     impostos_guias: c.impostosGuias || {},
+    iss_dismissed_meses: c.issDismissedMeses || {},
+    tempo_apuracao_segundos: c.tempoApuracaoSegundos || 0,
+    tempo_apuracao_rodando: !!c.tempoApuracaoRodando,
+    tempo_apuracao_inicio: nullIfBlank(c.tempoApuracaoInicio),
+    data_concluida: nullIfBlank(c.dataConcluida),
     historico: c.historico || [],
     observacoes: c.observacoes || '',
     observacoes_apuracao: c.observacoesApuracao || ''
   };
 }
 
-/* ---------------- carregar / salvar tudo (mantém a mesma semântica de "salva o estado inteiro" do app original) ---------------- */
+/* ---------------- carregar / salvar tudo (mantém a semântica de "salva o estado inteiro" do app original) ---------------- */
 export async function loadData(){
   const { data: { user } } = await supabase.auth.getUser();
   ownerId = user.id;
@@ -95,10 +132,14 @@ export async function loadData(){
     supabase.from('user_settings').select('*').eq('owner_id', ownerId).maybeSingle()
   ]);
 
+  const settings = settingsRow || {};
   DATA = {
     companies: (companyRows || []).map(rowToCompany),
     impostosCustom: (impostosRows || []).map(r => ({ key: r.key, label: r.label, regimes: r.regimes || [] })),
-    ordemApuracaoManual: (settingsRow && settingsRow.ordem_apuracao_manual) || []
+    ordemApuracaoManual: settings.ordem_apuracao_manual || [],
+    metas: settings.metas || [],
+    relatoriosHistorico: settings.relatorios_historico || [],
+    impostosSistemaDesativados: settings.impostos_sistema_desativados || []
   };
 }
 
@@ -125,8 +166,13 @@ async function persist(){
     if(error) throw error;
   }
 
-  const { error: settingsError } = await supabase.from('user_settings')
-    .upsert({ owner_id: ownerId, ordem_apuracao_manual: DATA.ordemApuracaoManual || [] });
+  const { error: settingsError } = await supabase.from('user_settings').upsert({
+    owner_id: ownerId,
+    ordem_apuracao_manual: DATA.ordemApuracaoManual || [],
+    metas: DATA.metas || [],
+    relatorios_historico: DATA.relatoriosHistorico || [],
+    impostos_sistema_desativados: DATA.impostosSistemaDesativados || []
+  });
   if(settingsError) throw settingsError;
 }
 
