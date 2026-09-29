@@ -91,6 +91,10 @@ export async function encerrarApuracaoDoMes(){
     porImpostos: relatorioPorImpostos.sort((a,b)=>b.value-a.value)
   });
 
+  // marca o início do novo ciclo — a partir de agora, empresas arquivadas em
+  // ciclos anteriores não aparecem mais em "Mostrar arquivadas" no calendário/apuração
+  DATA.inicioCicloApuracao = new Date().toISOString();
+
   await saveData();
   render();
   renderApuracao();
@@ -329,6 +333,7 @@ export function openImpostoDetalheView(c, key){
   const imp = c.impostos || {};
   const impV = c.impostosValores || {};
   const impVenc = c.impostosVencimentos || {};
+  const impObs = c.impostosObservacoes || {};
   const resp = getResponsaveisArray(c)[0] || {};
   const eff = imp[key] || getFieldDefault(c, 'impostosPadrao', key, def);
   const enviado = impostoEnviadoEfetivo(c, key);
@@ -337,12 +342,19 @@ export function openImpostoDetalheView(c, key){
   $('#histDetData').textContent = label + (impVenc[key] ? (' · vence em ' + fmtDate(impVenc[key])) : '');
 
   let infoTop = `
-    <div class="field" style="max-width:220px">
-      <label>Esse imposto já foi enviado?</label>
-      <select id="impDetStatusSelect" class="${enviado?'sel-ok':'sel-late'}">
-        <option value="NAO" ${!enviado?'selected':''}>Não</option>
-        <option value="SIM" ${enviado?'selected':''}>Sim</option>
-      </select>
+    <div class="row2" style="align-items:flex-end">
+      <div class="field" style="max-width:220px;margin-bottom:0">
+        <label>Esse imposto já foi enviado?</label>
+        <select id="impDetStatusSelect" class="${enviado?'sel-ok':'sel-late'}">
+          <option value="NAO" ${!enviado?'selected':''}>Não</option>
+          <option value="SIM" ${enviado?'selected':''}>Sim</option>
+        </select>
+      </div>
+      ${impVenc[key] ? `<button type="button" class="btn btn-outline btn-sm" id="btnExcluirAvisoImposto" title="Excluir só este aviso do calendário (a apuração continua salva)" style="flex:none;color:var(--red);border-color:var(--red)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Excluir aviso</button>` : ''}
+    </div>
+    <div class="field" style="margin-top:10px">
+      <label>Observações (ex: pra quem foi encaminhado)</label>
+      <textarea id="impDetObservacoes" rows="2" placeholder="Ex: Encaminhado para Juliane em 05/09...">${escapeHtml(impObs[key]||'')}</textarea>
     </div>
     <div class="divider"></div>
     <div class="row2">
@@ -382,5 +394,23 @@ export function openImpostoDetalheView(c, key){
     openImpostoDetalheView(c, key);
     toast('Marcação atualizada.');
   });
+  $('#impDetObservacoes').addEventListener('change', async (e) => {
+    c.impostosObservacoes = c.impostosObservacoes || {};
+    c.impostosObservacoes[key] = e.target.value;
+    await saveData();
+    toast('Observação salva.');
+  });
+  const btnExcluirAviso = $('#btnExcluirAvisoImposto');
+  if(btnExcluirAviso){
+    btnExcluirAviso.addEventListener('click', async () => {
+      const ok2go = await confirmDialog('Excluir este aviso do calendário? A apuração e o histórico dessa empresa continuam salvos, só esse lembrete de vencimento some do calendário.', {okLabel:'Excluir aviso'});
+      if(!ok2go) return;
+      if(c.impostosVencimentos) delete c.impostosVencimentos[key];
+      await saveData();
+      closeModal('#modalHistoricoDetalhe');
+      if($('#modalCalendario').classList.contains('show')) renderCalendario();
+      toast('Aviso removido do calendário.');
+    });
+  }
   openModal('#modalHistoricoDetalhe');
 }

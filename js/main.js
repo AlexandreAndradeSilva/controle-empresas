@@ -12,6 +12,7 @@ import './impostosCustom.js';
 import './historico.js';
 import './calendario.js';
 import './metas.js';
+import './grupos.js';
 import './relatorio.js';
 import './backup.js';
 

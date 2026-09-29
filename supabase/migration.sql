@@ -362,6 +362,37 @@ update public.companies
 alter table public.companies alter column responsavel_empresa set default '[]';
 
 -- ---------------------------------------------------------------------------
+-- Atualizacao de schema: Grupos de Empresas, observacoes por imposto e
+-- ciclo de apuracao
+--
+-- OBRIGATORIO para esta versao. Sem este bloco o app carrega normalmente, mas
+-- QUALQUER gravacao falha: o upsert manda colunas que ainda nao existem e o
+-- Postgres devolve erro, entao o saveData() cai no toast "Nao foi possivel
+-- salvar os dados". Rode antes de publicar o frontend novo.
+--
+-- Idempotente (`add column if not exists`), nao apaga nada.
+-- ---------------------------------------------------------------------------
+
+-- Observacao por imposto ("pra quem foi encaminhado"), editada no detalhe do
+-- imposto que abre a partir do Calendario de Vencimentos.
+alter table public.companies
+  add column if not exists impostos_observacoes jsonb not null default '{}';
+
+-- Grupos de empresas (mesmo dono / grupo economico). Vive em user_settings
+-- junto com metas e ordem manual, no formato:
+--   [{ id, nome, empresaPrincipalId, empresaIds: [] }]
+alter table public.user_settings
+  add column if not exists grupos jsonb not null default '[]';
+
+-- Inicio do ciclo de apuracao atual: marcado a cada "Encerrar mes". A Apuracao
+-- usa isso pra so listar, em "Mostrar tambem empresas arquivadas neste mes",
+-- as empresas arquivadas depois do ultimo encerramento. E timestamptz (e nao
+-- text) de proposito: assim volta da API no mesmo formato de companies.data_baixa,
+-- que e com quem ele e comparado no cliente.
+alter table public.user_settings
+  add column if not exists inicio_ciclo_apuracao timestamptz not null default now();
+
+-- ---------------------------------------------------------------------------
 -- OPCIONAL, E NAO RODA SOZINHO: chaves de imposto da versao anterior
 --
 -- Na versao anterior os impostos eram seis campos fixos, com as chaves

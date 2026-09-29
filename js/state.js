@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient.js';
 
 /* ---------------- state ---------------- */
-export let DATA = { companies: [], metas: [] };
+export let DATA = { companies: [], metas: [], grupos: [] };
 export let currentProfileId = null;
 export let perfilReturnTo = null;
 
@@ -53,6 +53,7 @@ function rowToCompany(row){
     impostosPadrao: row.impostos_padrao || {},
     impostosValores: row.impostos_valores || {},
     impostosVencimentos: row.impostos_vencimentos || {},
+    impostosObservacoes: row.impostos_observacoes || {},
     impostosReinfTipos: row.impostos_reinf_tipos || {},
     impostosEnviado: row.impostos_enviado || {},
     impostosSistemaOverride: row.impostos_sistema_override || {},
@@ -106,6 +107,7 @@ function companyToRow(c){
     impostos_padrao: c.impostosPadrao || {},
     impostos_valores: c.impostosValores || {},
     impostos_vencimentos: c.impostosVencimentos || {},
+    impostos_observacoes: c.impostosObservacoes || {},
     impostos_reinf_tipos: c.impostosReinfTipos || {},
     impostos_enviado: c.impostosEnviado || {},
     impostos_sistema_override: c.impostosSistemaOverride || {},
@@ -138,8 +140,10 @@ export async function loadData(){
     impostosCustom: (impostosRows || []).map(r => ({ key: r.key, label: r.label, regimes: r.regimes || [] })),
     ordemApuracaoManual: settings.ordem_apuracao_manual || [],
     metas: settings.metas || [],
+    grupos: settings.grupos || [],
     relatoriosHistorico: settings.relatorios_historico || [],
-    impostosSistemaDesativados: settings.impostos_sistema_desativados || []
+    impostosSistemaDesativados: settings.impostos_sistema_desativados || [],
+    inicioCicloApuracao: settings.inicio_ciclo_apuracao || new Date().toISOString()
   };
 }
 
@@ -170,8 +174,10 @@ async function persist(){
     owner_id: ownerId,
     ordem_apuracao_manual: DATA.ordemApuracaoManual || [],
     metas: DATA.metas || [],
+    grupos: DATA.grupos || [],
     relatorios_historico: DATA.relatoriosHistorico || [],
-    impostos_sistema_desativados: DATA.impostosSistemaDesativados || []
+    impostos_sistema_desativados: DATA.impostosSistemaDesativados || [],
+    inicio_ciclo_apuracao: DATA.inicioCicloApuracao || new Date().toISOString()
   });
   if(settingsError) throw settingsError;
 }
