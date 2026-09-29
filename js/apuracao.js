@@ -17,7 +17,22 @@ export function renderApuracao(){
 
 export function renderApurList(){
   const q = $('#apurSearch').value.trim().toLowerCase();
-  let list = DATA.companies.filter(c => !c.baixada);
+  const mostrarArquivadas = $('#apurMostrarArquivadas').checked;
+  const cicloInicio = DATA.inicioCicloApuracao || '';
+  let list = DATA.companies.filter(c => {
+    if(!c.baixada) return true;
+    if(!mostrarArquivadas) return false;
+    // só mostra empresas arquivadas dentro do ciclo (mês) atual de apuração —
+    // depois que o mês é encerrado, elas somem de vez dessa lista
+    return !!c.dataBaixa && c.dataBaixa >= cicloInicio;
+  });
+
+  // mantém o filtro de grupos atualizado com os grupos que existem agora
+  const grupoSelectEl = $('#apurGrupoFilter');
+  const grupoValAtual = grupoSelectEl.value;
+  const gruposOrdenados = (DATA.grupos||[]).slice().sort((a,b)=>a.nome.localeCompare(b.nome));
+  grupoSelectEl.innerHTML = `<option value="">Grupo: todos</option>` + gruposOrdenados.map(g => `<option value="${g.id}">${escapeHtml(g.nome)}</option>`).join('');
+  if(gruposOrdenados.some(g => g.id === grupoValAtual)) grupoSelectEl.value = grupoValAtual;
 
   if(q){
     list = list.filter(c =>
@@ -52,6 +67,20 @@ export function renderApurList(){
     list = list.filter(c => c.fatorR === 'SIM');
   } else if(fatorRFilter === 'NAO'){
     list = list.filter(c => c.fatorR !== 'SIM');
+  }
+  const prioridadeFilter = $('#apurPrioridadeFilter').value;
+  if(prioridadeFilter === '__NENHUMA__'){
+    list = list.filter(c => !c.prioridadeApuracao);
+  } else if(prioridadeFilter){
+    list = list.filter(c => c.prioridadeApuracao === prioridadeFilter);
+  }
+  const grupoFilter = $('#apurGrupoFilter').value;
+  if(grupoFilter){
+    const grupo = (DATA.grupos||[]).find(g => g.id === grupoFilter);
+    if(grupo){
+      const idsDoGrupo = new Set([grupo.empresaPrincipalId, ...(grupo.empresaIds||[])].filter(Boolean));
+      list = list.filter(c => idsDoGrupo.has(c.id));
+    }
   }
 
   const ordenarPor = $('#apurOrdenarPor').value;
@@ -113,7 +142,7 @@ export function renderApurList(){
         </select>
         <div class="avatar">${initials(c.razaoSocial)||'?'}</div>
         <div style="min-width:0">
-          <div class="client-name">${escapeHtml(c.razaoSocial)}</div>
+          <div class="client-name">${escapeHtml(c.razaoSocial)}${c.baixada ? ' <span class="regime-tag" style="color:var(--red);border-color:var(--red)">Arquivada</span>' : ''}</div>
           <div class="client-meta">${c.numero?('Nº '+c.numero+' · '):''}${c.atividade?(escapeHtml(c.atividade)+' · '):''}${c.issqnPrest==='SIM'?'<span class="meta-badge meta-badge-blue">ISSQN Prest.</span>':''}${c.issqnTomado==='SIM'?'<span class="meta-badge meta-badge-blue">ISSQN Tomado</span>':''}${c.fatorR==='SIM'?'<span class="meta-badge meta-badge-orange">Fator R</span>':''}${c.municipio||''}${c.uf?'/'+c.uf:''} ${c.vencimento ? '· vence '+fmtDate(c.vencimento) : ''}${apurFilter==='GERAL' ? ` · tempo: ${formatTempo(tempoApuracaoEfetivo(c))}` : ''}</div>
         </div>
       </div>
@@ -215,7 +244,10 @@ $('#apurDificuldadeFilter').addEventListener('change', renderApurList);
 $('#apurRegimeFilter').addEventListener('change', renderApurList);
 $('#apurIssqnFilter').addEventListener('change', renderApurList);
 $('#apurFatorRFilter').addEventListener('change', renderApurList);
+$('#apurPrioridadeFilter').addEventListener('change', renderApurList);
+$('#apurGrupoFilter').addEventListener('change', renderApurList);
 $('#apurOrdenarPor').addEventListener('change', renderApurList);
+$('#apurMostrarArquivadas').addEventListener('change', renderApurList);
 $('#btnApuracao').addEventListener('click', () => {
   apurFilter = 'PENDENTE';
   $$('#apurChips .chip').forEach(c=>c.classList.remove('active'));
@@ -225,7 +257,10 @@ $('#btnApuracao').addEventListener('click', () => {
   $('#apurRegimeFilter').value = '';
   $('#apurIssqnFilter').value = '';
   $('#apurFatorRFilter').value = '';
+  $('#apurPrioridadeFilter').value = '';
+  $('#apurGrupoFilter').value = '';
   $('#apurOrdenarPor').value = 'manual';
+  $('#apurMostrarArquivadas').checked = false;
   renderApuracao();
   openModal('#modalApuracao');
 });

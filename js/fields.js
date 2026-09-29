@@ -43,6 +43,11 @@ export function docGroupsHtml(renderField){
 export const IMPOSTOS_OPTIONS = [
   ['NÃO PAGA','Não paga'], ['NÃO TEM','Não tem'], ['CALCULAR','Calcular'], ['CONCLUIDO','Concluído']
 ];
+// ICMS, IPI e PIS/COFINS também podem ficar "Credor" (crédito a favor da empresa
+// em vez de imposto a pagar) — nesse caso não faz sentido pedir vencimento nem guia,
+// só o valor do crédito.
+export const IMPOSTOS_OPTIONS_CREDOR = [...IMPOSTOS_OPTIONS, ['CREDOR','Credor']];
+export const IMPOSTOS_KEYS_COM_CREDOR = ['sis_icms','sis_ipi','sis_pis_cofins'];
 
 // Impostos padrão do sistema: já vêm prontos por regime, não podem ser removidos
 // (só ativados/desativados globalmente em "Gerenciar Impostos", ou por empresa
@@ -77,7 +82,7 @@ export function getImpostosFieldsForCompany(c){
   const doSistema = IMPOSTOS_SISTEMA
     .filter(item => item.regimes.includes(c.regime))
     .filter(item => impostoSistemaAtivoParaEmpresa(c, item.key))
-    .map(item => [item.key, item.label, IMPOSTOS_OPTIONS, 'CALCULAR']);
+    .map(item => [item.key, item.label, IMPOSTOS_KEYS_COM_CREDOR.includes(item.key) ? IMPOSTOS_OPTIONS_CREDOR : IMPOSTOS_OPTIONS, 'CALCULAR']);
   const custom = (DATA.impostosCustom || [])
     .filter(f => (f.regimes||[]).includes(c.regime))
     .map(f => [f.key, f.label, IMPOSTOS_OPTIONS, 'CALCULAR']);

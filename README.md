@@ -10,6 +10,7 @@ Sistema web (frontend + Supabase como backend) para controle de empresas contáb
 - [x] `window.SUPABASE_CONFIG` no final do `index.html` preenchido com a URL e a anon key reais
 - [ ] "Confirm email" desligado em Authentication → Providers → Email (necessário para o cadastro por convite entrar direto)
 - [ ] **Bloco "Atualização de schema" do `supabase/migration.sql` rodado** — obrigatório para esta versão (ver abaixo)
+- [ ] **Bloco "Grupos de Empresas, observações por imposto e ciclo de apuração" do `supabase/migration.sql` rodado** — obrigatório: sem ele toda gravação falha
 
 > **Atualizando um projeto que já existia:** esta versão acrescentou colunas
 > (ISSQN, Fator R, obrigações, vencimento por imposto, cronômetro, prioridade…) e
@@ -68,6 +69,7 @@ js/
   apuracao.js        Apuração do Mês (contagens, filtros, prioridade, ordem manual)
   calendario.js      Calendário de Vencimentos e lembrete da Guia ISS
   metas.js           metas e avisos
+  grupos.js          grupos de empresas (mesmo dono/grupo economico)
   relatorio.js       relatório, gráficos e exportação para Excel
   historico.js       encerrar mês, meses anteriores e detalhe de imposto
   guias.js           PDFs das guias (Storage do Supabase)

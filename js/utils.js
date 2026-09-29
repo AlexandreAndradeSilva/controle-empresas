@@ -42,7 +42,7 @@ export function isValidDoc(v){
 }
 export function statusClass(s){ return s==='PENDENTE' ? 'status-late' : (s==='ANDAMENTO' ? 'status-mid' : 'status-ok'); }
 export function statusColorKind(v){
-  if(v === 'CONCLUIDO' || v === 'FEITO' || v === 'CLIENTE_ENVIOU' || v === 'RELATORIO_PREFEITURA' || v === 'MOVIMENTO ENCERRADO') return 'ok';
+  if(v === 'CONCLUIDO' || v === 'FEITO' || v === 'CLIENTE_ENVIOU' || v === 'RELATORIO_PREFEITURA' || v === 'MOVIMENTO ENCERRADO' || v === 'CREDOR') return 'ok';
   if(v === 'PENDENTE' || v === 'LANÇAR' || v === 'CONFERIR' || v === 'FECHAR DCTF') return 'late';
   if(!v) return '';
   if(v.includes('NÃO TEM') || v==='NÃO PAGA' || v==='NÃO PRECISA') return 'neutral';

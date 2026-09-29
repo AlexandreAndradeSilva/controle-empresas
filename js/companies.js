@@ -318,7 +318,7 @@ $('#openEmpresa').addEventListener('click', () => {
 });
 
 function normalizeAtividade(v){
-  const a = (v||'').toUpperCase().replace('É','E').replace(/\s/g,'');
+  const a = (v||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s/g,'');
   if(a.includes('SERVIC') && a.includes('COMERC')) return 'SERVIÇOS/COMÉRCIO';
   if(a.includes('COMERC') && a.includes('INDUST')) return 'COMÉRCIO/INDUSTRIA';
   if(a.includes('INDUST') && a.includes('SERVIC')) return 'INDUSTRIA/COMERCIO';

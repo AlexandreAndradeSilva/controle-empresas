@@ -152,6 +152,7 @@
       <button class="btn btn-ghost" id="btnGerenciarImpostos"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg> Gerenciar Impostos</button>
       <button class="btn btn-ghost" id="btnRelatorio"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg> Relatório</button>
       <button class="btn btn-ghost" id="btnMetas"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> Metas <span class="badge" id="metasAtivasCount" style="display:none;margin-left:2px">0</span></button>
+      <button class="btn btn-ghost" id="btnGrupos"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Grupos</button>
       <button class="btn-icon" id="btnDark" title="Alternar tema"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
       <button class="btn-icon" id="btnBackup" title="Backup / Restaurar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       <button class="btn-icon" id="btnAlterarSenha" title="Alterar senha"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
@@ -450,6 +451,20 @@
           <option value="SIM">Fator R: Sim</option>
           <option value="NAO">Fator R: Não</option>
         </select>
+        <select id="apurPrioridadeFilter" class="filter-select">
+          <option value="">Prioridade: todas</option>
+          <option value="A+">A+</option>
+          <option value="A">A</option>
+          <option value="B+">B+</option>
+          <option value="B">B</option>
+          <option value="C+">C+</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+          <option value="__NENHUMA__">Sem prioridade</option>
+        </select>
+        <select id="apurGrupoFilter" class="filter-select">
+          <option value="">Grupo: todos</option>
+        </select>
         <select id="apurOrdenarPor" class="filter-select">
           <option value="manual" selected>Ordenar: Arrastar (manual)</option>
           <option value="nome_az">Ordenar: Nome (A-Z)</option>
@@ -460,6 +475,10 @@
           <option value="progresso_maior">Ordenar: Progresso (maior primeiro)</option>
         </select>
       </div>
+    </div>
+    <div class="checkbox-row" style="margin-top:8px">
+      <input type="checkbox" id="apurMostrarArquivadas">
+      <label for="apurMostrarArquivadas" style="margin:0;font-weight:600;font-size:.85rem;color:var(--ink)">Mostrar também empresas arquivadas neste mês</label>
     </div>
     <p class="small-muted" id="apurDragHint" style="margin-top:6px">Arraste as empresas pela lista abaixo para reordenar do seu jeito.</p>
     <div id="apurList"></div>
@@ -503,6 +522,10 @@
           <datalist id="calEmpresaDatalist"></datalist>
         </div>
         <button class="btn btn-outline btn-sm" id="calRestaurarIss" title="Traz de volta os avisos de Guia ISS que você marcou como resolvidos nesse mês">Restaurar avisos ISS</button>
+        <div class="checkbox-row" style="margin:0">
+          <input type="checkbox" id="calMostrarArquivadas">
+          <label for="calMostrarArquivadas" style="margin:0;font-weight:600;font-size:.82rem;color:var(--ink)">Mostrar arquivadas</label>
+        </div>
         <button class="btn btn-outline btn-sm" id="calHoje">Hoje</button>
       </div>
     </div>
@@ -670,6 +693,50 @@
     </div>
 
     <div id="metasList" style="margin-top:16px;display:flex;flex-direction:column;gap:12px"></div>
+    <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Grupos de Empresas -->
+<div class="overlay" id="modalGrupos">
+  <div class="modal modal-fullscreen" style="overflow-y:auto">
+    <div style="max-width:min(900px,96vw);margin:0 auto">
+    <button class="btn btn-outline btn-sm" data-close style="margin-bottom:14px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Voltar</button>
+    <div class="modal-head"><h2>Grupos de Empresas</h2><button class="close-x" data-close><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em" ><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></button></div>
+    <p class="small-muted">Agrupe empresas que pertencem ao mesmo dono/grupo econômico. Isso mostra "Pertence ao Grupo" no cadastro de cada empresa e libera um filtro por grupo na Apuração do Mês.</p>
+
+    <div class="modal-actions" style="justify-content:flex-start;margin-top:4px">
+      <button class="btn btn-primary btn-sm" id="btnNovoGrupo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg" style="vertical-align:-0.15em"><path d="M12 5v14"/><path d="M5 12h14"/></svg> Novo grupo</button>
+    </div>
+
+    <!-- formulário (escondido até clicar em Novo grupo / Editar) -->
+    <div class="form-card" id="grupoFormCard" style="margin-top:14px;display:none">
+      <h3 id="grupoFormTitulo" style="margin:0 0 12px;font-size:.92rem">Novo grupo</h3>
+      <input type="hidden" id="grupoFormId">
+      <div class="field">
+        <label>Nome do grupo</label>
+        <input type="text" id="grupoFormNome" placeholder='Ex: "VITALLI"'>
+      </div>
+      <div class="field">
+        <label>Empresa principal</label>
+        <input type="text" id="grupoFormPrincipalBusca" list="grupoPrincipalDatalist" placeholder="Pesquisar empresa..." autocomplete="off">
+        <datalist id="grupoPrincipalDatalist"></datalist>
+        <input type="hidden" id="grupoFormPrincipalId">
+      </div>
+      <div class="field">
+        <label>Empresas do grupo</label>
+        <input type="text" id="grupoFormEmpresasBusca" placeholder="Pesquisar empresa pra adicionar ao grupo..." autocomplete="off">
+        <div id="grupoFormEmpresasLista" style="margin-top:8px;max-height:260px;overflow-y:auto;border:1px solid var(--line);border-radius:9px;padding:8px"></div>
+        <p class="small-muted" id="grupoFormEmpresasCount" style="margin-top:6px">Nenhuma empresa selecionada.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="btnCancelarGrupo">Cancelar</button>
+        <button class="btn btn-primary" id="btnSalvarGrupo">Salvar grupo</button>
+      </div>
+    </div>
+
+    <div id="gruposList" style="margin-top:16px;display:flex;flex-direction:column;gap:12px"></div>
     <div class="modal-actions"><button class="btn btn-outline" data-close>Fechar</button></div>
     </div>
   </div>

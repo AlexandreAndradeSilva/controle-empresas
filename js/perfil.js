@@ -11,6 +11,25 @@ import { guiaBadgeHtml, bindGuiaButtons } from './guias.js';
 import { getResponsaveisArray, getSistemasArray, render } from './companies.js';
 import { renderApuracao } from './apuracao.js';
 import { renderRelatorio } from './relatorio.js';
+import { getGrupoDaEmpresa } from './grupos.js';
+
+/* Ao trocar o status de ICMS/IPI/PIS-COFINS pra "Credor", esconde a data de
+   vencimento (e zera ela) e o espaço da guia — crédito não tem prazo nem guia
+   pra anexar, só o valor. */
+document.addEventListener('change', (e) => {
+  if(e.target.matches && e.target.matches('#impostosSection select[data-impkey]')){
+    const impKey = e.target.dataset.impkey;
+    const row = e.target.closest('.imposto-row');
+    if(!row) return;
+    const dateInput = row.querySelector(`[data-impvenc="${CSS.escape(impKey)}"]`);
+    const guiaSlot = row.children[4];
+    if(dateInput){
+      dateInput.style.visibility = e.target.value === 'CREDOR' ? 'hidden' : '';
+      if(e.target.value === 'CREDOR') dateInput.value = '';
+    }
+    if(guiaSlot) guiaSlot.style.display = e.target.value === 'CREDOR' ? 'none' : '';
+  }
+});
 
 export function updateDocsProgressUI(percent){
   const bar = $('#docsProgressBar');
@@ -162,6 +181,7 @@ export async function salvarApuracaoDoPerfil(){
   $$('#impostosSection input[data-impvenc]').forEach(inp => {
     novoImpVenc[inp.dataset.impvenc] = inp.value;
   });
+  Object.keys(novoImp).forEach(k => { if(novoImp[k] === 'CREDOR') novoImpVenc[k] = ''; });
   c.impostosVencimentos = novoImpVenc;
 
   const novoReinfTipos = { ...(c.impostosReinfTipos||{}) };
@@ -381,11 +401,12 @@ export function renderImpostosSection(c, editMode){
   } else {
     const rowHtml = (k,label,options,def) => {
       const eff = d[k] || getFieldDefault(c,'impostosPadrao',k,def);
+      const isCredor = eff === 'CREDOR';
       const valorFormatado = v[k] != null ? digitsToMoneyStr(Math.round(v[k]*100).toString()) : '';
       const tiposAtual = reinfTipos[k] || {};
       return `
       <div class="imposto-row">
-        <input type="date" data-impvenc="${k}" value="${venc[k]||''}" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 9px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink)">
+        <input type="date" data-impvenc="${k}" value="${venc[k]||''}" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 9px;font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--ink);${isCredor?'visibility:hidden':''}">
         <div style="font-weight:700;font-size:.85rem">${escapeHtml(label)}</div>
         <select data-impkey="${k}" style="width:100%">
           ${options.map(([v2,l]) => `<option value="${v2}" ${eff===v2?'selected':''}>${l}</option>`).join('')}
@@ -394,7 +415,7 @@ export function renderImpostosSection(c, editMode){
           <span class="small-muted" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:.82rem">R$</span>
           <input type="text" inputmode="numeric" data-impvalue="${k}" value="${valorFormatado}" placeholder="0,00" style="width:100%;padding-left:32px">
         </div>
-        <div style="display:flex;justify-content:flex-end">${guiaBadgeHtml(c,k)}</div>
+        <div style="display:flex;justify-content:flex-end">${isCredor ? '' : guiaBadgeHtml(c,k)}</div>
         ${isReinfLabel(label) ? `
         <div style="grid-column:1/-1;display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:2px">
           <span class="small-muted" style="font-weight:700;font-size:.7rem">Esse REINF é de:</span>
@@ -542,6 +563,13 @@ export function openPerfil(id, startDocsEdit){
     <div class="row3" style="margin-top:10px">
       <div><span class="small-muted">Fator R</span><br><strong>${c.fatorR==='SIM'?'Sim':'Não'}</strong></div>
     </div>` : ''}
+    ${(() => {
+      const grupo = getGrupoDaEmpresa(c);
+      if(!grupo) return '';
+      return `<div class="row3" style="margin-top:10px">
+        <div><span class="small-muted">Pertence ao Grupo</span><br><strong style="color:var(--navy-700)">${escapeHtml(grupo.nome)}</strong></div>
+      </div>`;
+    })()}
     <div class="section-title">Situação</div>
     <div class="row3">
       <div>

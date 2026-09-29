@@ -28,7 +28,16 @@ export function getVencimentosPorDia(){
   const mesView = calDate.getMonth();
   const diasNoMesView = new Date(anoView, mesView+1, 0).getDate();
   const mesKey = mesKeyDe(calDate);
-  DATA.companies.filter(c => !c.baixada).filter(c => !calEmpresaFiltro || c.id === calEmpresaFiltro).forEach(c => {
+  const mostrarArquivadas = $('#calMostrarArquivadas') && $('#calMostrarArquivadas').checked;
+  DATA.companies.filter(c => {
+    if(!c.baixada) return true;
+    if(!mostrarArquivadas) return false;
+    // só mostra os avisos de uma empresa arquivada no mês em que ela foi arquivada —
+    // nos meses seguintes, mesmo com "Mostrar arquivadas" marcado, ela não aparece mais
+    if(!c.dataBaixa) return false;
+    const db = new Date(c.dataBaixa);
+    return db.getFullYear() === anoView && db.getMonth() === mesView;
+  }).filter(c => !calEmpresaFiltro || c.id === calEmpresaFiltro).forEach(c => {
     const venc = c.impostosVencimentos || {};
     const fields = getImpostosFieldsForCompany(c);
     Object.keys(venc).forEach(k => {
@@ -164,22 +173,26 @@ export async function toggleImpostoEnviadoCalendario(companyId, key){
 
 export function populateCalEmpresaFiltro(){
   const dl = $('#calEmpresaDatalist');
-  const empresas = DATA.companies.filter(c => !c.baixada).slice().sort((a,b)=>a.razaoSocial.localeCompare(b.razaoSocial));
+  const mostrarArquivadas = $('#calMostrarArquivadas').checked;
+  const empresas = DATA.companies.filter(c => mostrarArquivadas || !c.baixada).slice().sort((a,b)=>a.razaoSocial.localeCompare(b.razaoSocial));
   dl.innerHTML = empresas.map(c => `<option value="${escapeHtml(c.razaoSocial)}">`).join('');
-  $('#calEmpresaFiltro').value = '';
 }
 
 $('#btnCalendarioVencimentos').addEventListener('click', () => {
   calDate = new Date();
   calEmpresaFiltro = '';
+  $('#calMostrarArquivadas').checked = false;
   populateCalEmpresaFiltro();
+  $('#calEmpresaFiltro').value = '';
   renderCalendario();
   openModal('#modalCalendario');
 });
+$('#calMostrarArquivadas').addEventListener('change', () => { populateCalEmpresaFiltro(); renderCalendario(); });
 $('#calEmpresaFiltro').addEventListener('input', (e) => {
   const texto = e.target.value.trim().toLowerCase();
   if(!texto){ calEmpresaFiltro = ''; renderCalendario(); return; }
-  const encontrada = DATA.companies.find(c => !c.baixada && c.razaoSocial.trim().toLowerCase() === texto);
+  const mostrarArquivadas = $('#calMostrarArquivadas').checked;
+  const encontrada = DATA.companies.find(c => (mostrarArquivadas || !c.baixada) && c.razaoSocial.trim().toLowerCase() === texto);
   calEmpresaFiltro = encontrada ? encontrada.id : calEmpresaFiltro;
   renderCalendario();
 });
